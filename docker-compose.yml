@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: quickmart-postgres
+    environment:
+      POSTGRES_DB: quickmart
+      POSTGRES_USER: quickmart
+      POSTGRES_PASSWORD: quickmart
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quickmart -d quickmart"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: quickmart-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/quickmart
+      DB_USERNAME: quickmart
+      DB_PASSWORD: quickmart
+      JWT_SECRET: very-secret-jwt-key-change-me-in-production-please
+      JWT_EXPIRATION_SECONDS: 86400
+      SERVER_PORT: 8080
+      SPRING_MAIN_LAZY_INITIALIZATION: "true"
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8080
+    container_name: quickmart-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost | grep -q '<!doctype html>'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+volumes:
+  pgdata:
