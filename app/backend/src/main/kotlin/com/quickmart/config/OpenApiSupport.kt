@@ -1,0 +1,25 @@
+﻿package com.quickmart.config
+
+const val BEARER_AUTH_SCHEME = "bearerAuth"
+
+const val BAD_REQUEST_RESPONSE_REF = "#/components/responses/BadRequest"
+const val UNAUTHORIZED_ACCESS_RESPONSE_REF = "#/components/responses/UnauthorizedAccess"
+const val UNAUTHORIZED_LOGIN_RESPONSE_REF = "#/components/responses/UnauthorizedLogin"
+const val FORBIDDEN_RESPONSE_REF = "#/components/responses/Forbidden"
+const val NOT_FOUND_RESPONSE_REF = "#/components/responses/NotFound"
+const val CONFLICT_RESPONSE_REF = "#/components/responses/Conflict"
+const val INTERNAL_SERVER_ERROR_RESPONSE_REF = "#/components/responses/InternalServerError"
+
+const val TAG_AUTH = "Аутентификация"
+const val TAG_CATALOG = "Каталог"
+const val TAG_CATEGORIES = "Категории"
+const val TAG_CART = "Корзина"
+const val TAG_ADDRESSES = "Адреса"
+const val TAG_DELIVERY_SLOTS = "Слоты доставки"
+const val TAG_ORDERS = "Заказы и оформление"
+const val TAG_ADMIN_PRODUCTS = "Администрирование товаров"
+const val TAG_ADMIN_CATEGORIES = "Администрирование категорий"
+const val TAG_ADMIN_INVENTORY = "Администрирование остатков"
+const val TAG_ADMIN_ORDERS = "Администрирование заказов"
+const val TAG_ADMIN_PROMOS = "Администрирование промокодов"
+const val TAG_ADMIN_DELIVERY_SLOTS = "Администрирование слотов доставки"
