@@ -1,4 +1,4 @@
-package com.quickmart.domain.entity
+﻿package com.quickmart.domain.entity
 
 import com.quickmart.domain.enums.OrderStatus
 import jakarta.persistence.CascadeType

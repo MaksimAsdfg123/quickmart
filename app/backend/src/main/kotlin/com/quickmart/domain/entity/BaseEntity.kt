@@ -1,4 +1,4 @@
-package com.quickmart.domain.entity
+﻿package com.quickmart.domain.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Id

@@ -1,4 +1,4 @@
-package com.quickmart.security
+﻿package com.quickmart.security
 
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts

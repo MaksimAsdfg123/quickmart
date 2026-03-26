@@ -1,4 +1,4 @@
-package com.quickmart.mapper
+﻿package com.quickmart.mapper
 
 import com.quickmart.domain.entity.InventoryStock
 import com.quickmart.dto.admin.InventoryStockResponse

@@ -1,4 +1,4 @@
-package com.quickmart.security
+﻿package com.quickmart.security
 
 import com.quickmart.repository.UserRepository
 import org.springframework.security.core.userdetails.UserDetailsService

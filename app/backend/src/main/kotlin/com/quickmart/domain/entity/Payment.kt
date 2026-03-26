@@ -1,4 +1,4 @@
-package com.quickmart.domain.entity
+﻿package com.quickmart.domain.entity
 
 import com.quickmart.domain.enums.PaymentMethod
 import com.quickmart.domain.enums.PaymentStatus

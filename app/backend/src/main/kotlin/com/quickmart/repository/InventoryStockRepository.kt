@@ -1,4 +1,4 @@
-package com.quickmart.repository
+﻿package com.quickmart.repository
 
 import com.quickmart.domain.entity.InventoryStock
 import jakarta.persistence.LockModeType

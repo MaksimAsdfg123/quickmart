@@ -1,4 +1,4 @@
-package com.quickmart.exception
+﻿package com.quickmart.exception
 
 open class BusinessException(
     message: String,

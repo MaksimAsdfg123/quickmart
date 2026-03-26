@@ -1,4 +1,4 @@
-package com.quickmart.repository
+﻿package com.quickmart.repository
 
 import com.quickmart.domain.entity.CartItem
 import org.springframework.data.jpa.repository.JpaRepository

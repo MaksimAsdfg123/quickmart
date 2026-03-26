@@ -1,4 +1,4 @@
-package com.quickmart.security
+﻿package com.quickmart.security
 
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component

@@ -1,4 +1,4 @@
-package com.quickmart.security
+﻿package com.quickmart.security
 
 import com.quickmart.domain.enums.Role
 import org.springframework.security.core.GrantedAuthority

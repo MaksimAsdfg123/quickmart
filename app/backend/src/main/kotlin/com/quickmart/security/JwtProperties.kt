@@ -1,4 +1,4 @@
-package com.quickmart.security
+﻿package com.quickmart.security
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

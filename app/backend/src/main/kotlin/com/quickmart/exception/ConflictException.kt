@@ -1,4 +1,4 @@
-package com.quickmart.exception
+﻿package com.quickmart.exception
 
 class ConflictException(
     message: String,

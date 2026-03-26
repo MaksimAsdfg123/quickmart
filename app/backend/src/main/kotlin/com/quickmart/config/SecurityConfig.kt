@@ -1,4 +1,4 @@
-package com.quickmart.config
+﻿package com.quickmart.config
 
 import com.quickmart.security.AppUserDetailsService
 import com.quickmart.security.JwtAuthenticationEntryPoint
