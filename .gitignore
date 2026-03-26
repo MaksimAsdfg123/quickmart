@@ -1,8 +1,9 @@
 .gradle/
 .idea/
-backend/.gradle/
-backend/build/
-frontend/node_modules/
-frontend/dist/
-frontend/*.tsbuildinfo
+app/backend/.gradle/
+app/backend/build/
+app/frontend/node_modules/
+app/frontend/dist/
+app/frontend/*.tsbuildinfo
+tests/**/build/
 build/

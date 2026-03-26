@@ -19,7 +19,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: app/backend/Dockerfile
     container_name: quickmart-backend
     depends_on:
       postgres:
@@ -42,7 +42,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./app/frontend
       args:
         VITE_API_BASE_URL: http://localhost:8080
     container_name: quickmart-frontend

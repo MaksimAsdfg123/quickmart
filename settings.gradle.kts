@@ -1,4 +1,4 @@
 rootProject.name = "quickmart"
 
 include(":backend")
-project(":backend").projectDir = file("backend")
+project(":backend").projectDir = file("app/backend")
