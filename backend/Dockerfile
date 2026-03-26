@@ -1,20 +1,23 @@
 FROM gradle:8.10.2-jdk21 AS builder
-WORKDIR /app
+WORKDIR /workspace
 
-# Copy build metadata first to maximize Docker layer cache hits.
-COPY build.gradle.kts settings.gradle.kts gradle.properties /app/
+# Copy monorepo build metadata first to maximize Docker layer cache hits.
+COPY build.gradle.kts settings.gradle.kts gradlew gradlew.bat /workspace/
+COPY gradle /workspace/gradle
+COPY backend/build.gradle.kts backend/gradle.properties /workspace/backend/
 
-# Warm up Gradle dependency cache.
+# Warm up Gradle dependency cache for the backend module.
 RUN --mount=type=cache,target=/home/gradle/.gradle \
-    gradle --no-daemon dependencies
+    gradle --no-daemon :backend:dependencies
 
-COPY src /app/src
+# Copy backend sources.
+COPY backend/src /workspace/backend/src
 
 RUN --mount=type=cache,target=/home/gradle/.gradle \
-    gradle --no-daemon bootJar -x test
+    gradle --no-daemon :backend:bootJar
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=builder /app/build/libs/*.jar /app/app.jar
+COPY --from=builder /workspace/backend/build/libs/*.jar /app/app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

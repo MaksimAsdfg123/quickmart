@@ -175,13 +175,20 @@ export function CheckoutPage() {
 
             <div className="form-row">
               <label htmlFor="promoCode">Промокод</label>
-              <Input id="promoCode" placeholder="Например, SAVE10" {...register('promoCode')} />
+              <Input
+                id="promoCode"
+                placeholder="Например, SAVE10"
+                {...register('promoCode')}
+              />
               <div className="muted muted--compact">Промокод проверяется сервером при подтверждении заказа.</div>
             </div>
 
             <div className="form-row">
               <label htmlFor="paymentMethod">Способ оплаты</label>
-              <Select id="paymentMethod" {...register('paymentMethod', { required: true })}>
+              <Select
+                id="paymentMethod"
+                {...register('paymentMethod', { required: true })}
+              >
                 <option value="CARD">Банковская карта</option>
                 <option value="CASH">Наличными курьеру</option>
                 <option value="MOCK_ONLINE">Онлайн (mock)</option>
@@ -192,7 +199,13 @@ export function CheckoutPage() {
               <div className="error">{extractErrorMessage(checkoutMutation.error)}</div>
             ) : null}
 
-            <Button type="submit" variant="primary" size="lg" block disabled={!canSubmit}>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              block
+              disabled={!canSubmit}
+            >
               Подтвердить заказ
             </Button>
           </form>

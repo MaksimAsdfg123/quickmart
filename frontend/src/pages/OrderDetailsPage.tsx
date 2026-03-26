@@ -79,7 +79,7 @@ export function OrderDetailsPage() {
         })
 
   return (
-    <div className="page">
+    <div className="page" data-order-id={order.id}>
       <section className="page-head">
         <div>
           <h1 className="page-title">Заказ №{formatOrderNumber(order.id)}</h1>

@@ -54,7 +54,7 @@ export function OrderHistoryPage() {
       ) : (
         <div className="grid">
           {query.data.content.map((order) => (
-            <Link key={order.id} to={`/orders/${order.id}`}>
+            <Link key={order.id} to={`/orders/${order.id}`} data-order-id={order.id}>
               <Card className="card--interactive">
                 <div className="order-summary">
                   <div className="order-summary__line">

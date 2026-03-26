@@ -107,6 +107,7 @@ export function CatalogPage() {
           <div className="chips chips--spaced">
             <button
               type="button"
+              data-category-name="Все"
               className={['chip', !categoryId ? 'active' : ''].join(' ')}
               onClick={() => {
                 setCategoryId(undefined)
@@ -119,6 +120,7 @@ export function CatalogPage() {
               <button
                 key={category.id}
                 type="button"
+                data-category-name={category.name}
                 className={['chip', categoryId === category.id ? 'active' : ''].join(' ')}
                 onClick={() => {
                   setCategoryId(category.id)
@@ -163,7 +165,11 @@ export function CatalogPage() {
 
               return (
                 <Card key={product.id} className="card--interactive">
-                  <article className="product-card">
+                  <article
+                    className="product-card"
+                    data-product-id={product.id}
+                    data-product-name={product.name}
+                  >
                     <div className="product-card__meta">
                       <h3 className="product-card__title">{product.name}</h3>
                       <Badge tone={product.availableQuantity > 0 ? 'success' : 'danger'}>

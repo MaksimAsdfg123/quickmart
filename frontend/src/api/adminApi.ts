@@ -57,10 +57,6 @@ export const adminApi = {
     return data
   },
 
-  deleteCategory: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/admin/categories/${id}`)
-  },
-
   listProducts: async (params: { page?: number; size?: number }): Promise<PageResponse<Product>> => {
     const { data } = await apiClient.get<PageResponse<Product>>('/api/admin/products', { params })
     return data
@@ -79,10 +75,6 @@ export const adminApi = {
   setProductActive: async (id: string, active: boolean): Promise<Product> => {
     const { data } = await apiClient.put<Product>(`/api/admin/products/${id}/active`, null, { params: { active } })
     return data
-  },
-
-  deactivateProduct: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/admin/products/${id}`)
   },
 
   listInventory: async (): Promise<InventoryStock[]> => {

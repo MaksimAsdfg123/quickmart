@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+﻿import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -7,19 +7,19 @@ import { useToast } from '../../shared/components/ToastProvider'
 import { Badge } from '../../shared/components/ui/Badge'
 import { Button } from '../../shared/components/ui/Button'
 import { Card } from '../../shared/components/ui/Card'
-import { EmptyState } from '../../shared/components/ui/EmptyState'
 import { Input } from '../../shared/components/ui/Input'
-import { Loader } from '../../shared/components/ui/Loader'
 import { Modal } from '../../shared/components/ui/Modal'
 import { Select } from '../../shared/components/ui/Select'
 import { extractErrorMessage } from '../../shared/lib/errors'
 import { formatDate, formatMoney } from '../../shared/lib/format'
 import type { PromoCode } from '../../shared/types'
 import { AdminEntityDrawer } from './AdminEntityDrawer'
-import { AdminTabs } from './AdminTabs'
+import { AdminFilterToolbar } from './AdminFilterToolbar'
+import { AdminPageLayout } from './AdminPageLayout'
+import { AdminPageState } from './AdminPageState'
+import { activityFilterOptions, type AdminActivityFilter, normalizeOptionalText } from './adminShared'
 
 type DrawerMode = 'create' | 'edit' | null
-type StatusFilter = 'ACTIVE' | 'INACTIVE' | 'ALL'
 type PromoLifecycle = 'ACTIVE' | 'SCHEDULED' | 'EXPIRED' | 'EXHAUSTED' | 'DISABLED'
 
 const emptyPromo: PromoPayload = {
@@ -33,12 +33,6 @@ const emptyPromo: PromoPayload = {
   usageLimit: null,
 }
 
-const statusOptions: Array<{ value: StatusFilter; label: string }> = [
-  { value: 'ACTIVE', label: 'Активные' },
-  { value: 'INACTIVE', label: 'Неактивные' },
-  { value: 'ALL', label: 'Все' },
-]
-
 function toPromoPayload(promo: PromoCode): PromoPayload {
   return {
     code: promo.code,
@@ -50,11 +44,6 @@ function toPromoPayload(promo: PromoCode): PromoPayload {
     validTo: promo.validTo ? promo.validTo.slice(0, 16) : null,
     usageLimit: promo.usageLimit ?? null,
   }
-}
-
-function normalizeOptionalText(value?: string | null) {
-  const trimmed = value?.trim()
-  return trimmed ? trimmed : null
 }
 
 function getPromoLifecycle(promo: PromoCode): PromoLifecycle {
@@ -110,7 +99,7 @@ export function AdminPromocodesPage() {
   const { showToast } = useToast()
   const [drawerMode, setDrawerMode] = useState<DrawerMode>(null)
   const [selectedPromo, setSelectedPromo] = useState<PromoCode | null>(null)
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ACTIVE')
+  const [statusFilter, setStatusFilter] = useState<AdminActivityFilter>('ACTIVE')
   const [search, setSearch] = useState('')
   const [pendingRowId, setPendingRowId] = useState<string | null>(null)
   const [deactivationTarget, setDeactivationTarget] = useState<PromoCode | null>(null)
@@ -154,35 +143,6 @@ export function AdminPromocodesPage() {
     setSelectedPromo(null)
     setDiscardModalOpen(false)
     reset(emptyPromo)
-  }
-
-  const handleDrawerClose = () => {
-    if (saveMutation.isPending) {
-      return
-    }
-
-    if (isDirty) {
-      setDiscardModalOpen(true)
-      return
-    }
-
-    closeDrawerImmediately()
-  }
-
-  const openCreateDrawer = () => {
-    setSelectedPromo(null)
-    setDrawerMode('create')
-    setDiscardModalOpen(false)
-    saveMutation.reset()
-    reset(emptyPromo)
-  }
-
-  const openEditDrawer = (promo: PromoCode) => {
-    setSelectedPromo(promo)
-    setDrawerMode('edit')
-    setDiscardModalOpen(false)
-    saveMutation.reset()
-    reset(toPromoPayload(promo))
   }
 
   const saveMutation = useMutation({
@@ -239,6 +199,35 @@ export function AdminPromocodesPage() {
     },
   })
 
+  const handleDrawerClose = () => {
+    if (saveMutation.isPending) {
+      return
+    }
+
+    if (isDirty) {
+      setDiscardModalOpen(true)
+      return
+    }
+
+    closeDrawerImmediately()
+  }
+
+  const openCreateDrawer = () => {
+    setSelectedPromo(null)
+    setDrawerMode('create')
+    setDiscardModalOpen(false)
+    saveMutation.reset()
+    reset(emptyPromo)
+  }
+
+  const openEditDrawer = (promo: PromoCode) => {
+    setSelectedPromo(promo)
+    setDrawerMode('edit')
+    setDiscardModalOpen(false)
+    saveMutation.reset()
+    reset(toPromoPayload(promo))
+  }
+
   const filteredPromos = useMemo(() => {
     const query = search.trim().toLowerCase()
 
@@ -260,6 +249,7 @@ export function AdminPromocodesPage() {
   }, [promosQuery.data, search, statusFilter])
 
   const drawerError = saveMutation.isError ? extractErrorMessage(saveMutation.error) : null
+  const submitLabel = saveMutation.isPending ? 'Сохраняем...' : drawerMode === 'edit' ? 'Сохранить' : 'Создать промокод'
 
   const handleStatusChange = (promo: PromoCode) => {
     if (promo.active) {
@@ -286,58 +276,39 @@ export function AdminPromocodesPage() {
   })
 
   return (
-    <div className="page admin-page">
-      <AdminTabs />
-
-      <section className="page-head">
-        <div>
-          <h1 className="page-title">Промокоды</h1>
-          <p className="page-subtitle">Создание скидок, управление периодами действия и доступностью.</p>
-        </div>
+    <AdminPageLayout
+      title="Промокоды"
+      subtitle="Создание скидок, управление периодами действия и доступностью."
+      actions={
         <Button type="button" onClick={openCreateDrawer}>
           Создать промокод
         </Button>
-      </section>
+      }
+    >
+      <AdminFilterToolbar
+        search={search}
+        searchPlaceholder="Поиск по коду промокода"
+        onSearchChange={setSearch}
+        filters={activityFilterOptions}
+        activeFilter={statusFilter}
+        onFilterChange={setStatusFilter}
+        filtersAriaLabel="Фильтр по статусу промокодов"
+      />
 
-      <Card>
-        <div className="admin-toolbar">
-          <Input
-            placeholder="Поиск по коду промокода"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <div className="admin-filters" aria-label="Фильтр по статусу промокодов">
-            {statusOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={['chip', statusFilter === option.value ? 'active' : ''].join(' ').trim()}
-                onClick={() => setStatusFilter(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Card>
-
-      {promosQuery.isLoading ? (
-        <Loader label="Загружаем промокоды" />
-      ) : promosQuery.isError || !promosQuery.data ? (
-        <Card>
-          <div className="error">{extractErrorMessage(promosQuery.error)}</div>
-        </Card>
-      ) : filteredPromos.length === 0 ? (
-        <EmptyState
-          title="Ничего не найдено"
-          description="Измените фильтр или создайте новый промокод."
-          action={
-            <Button type="button" onClick={openCreateDrawer}>
-              Создать промокод
-            </Button>
-          }
-        />
-      ) : (
+      <AdminPageState
+        isLoading={promosQuery.isLoading}
+        isError={promosQuery.isError || !promosQuery.data}
+        error={promosQuery.error}
+        isEmpty={filteredPromos.length === 0}
+        loadingLabel="Загружаем промокоды"
+        emptyTitle="Ничего не найдено"
+        emptyDescription="Измените фильтр или создайте новый промокод."
+        emptyAction={
+          <Button type="button" onClick={openCreateDrawer}>
+            Создать промокод
+          </Button>
+        }
+      >
         <Card>
           <table className="table">
             <thead>
@@ -402,7 +373,7 @@ export function AdminPromocodesPage() {
             </tbody>
           </table>
         </Card>
-      )}
+      </AdminPageState>
 
       <AdminEntityDrawer
         open={drawerMode !== null}
@@ -420,7 +391,7 @@ export function AdminPromocodesPage() {
               Отмена
             </Button>
             <Button type="submit" form="promo-drawer-form" disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? 'Сохраняем...' : drawerMode === 'edit' ? 'Сохранить' : 'Создать промокод'}
+              {submitLabel}
             </Button>
           </>
         }
@@ -564,6 +535,6 @@ export function AdminPromocodesPage() {
         onClose={() => setDiscardModalOpen(false)}
         onConfirm={closeDrawerImmediately}
       />
-    </div>
+    </AdminPageLayout>
   )
 }

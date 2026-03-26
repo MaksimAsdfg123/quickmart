@@ -164,7 +164,7 @@ export function CheckoutSuccessPage() {
             </div>
             <div className="order-summary__line order-summary__total">
               <span>Итого</span>
-              <strong>{formatMoney(order.total)}</strong>
+                <strong>{formatMoney(order.total)}</strong>
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+﻿import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -7,16 +7,21 @@ import { useToast } from '../../shared/components/ToastProvider'
 import { Badge } from '../../shared/components/ui/Badge'
 import { Button } from '../../shared/components/ui/Button'
 import { Card } from '../../shared/components/ui/Card'
-import { EmptyState } from '../../shared/components/ui/EmptyState'
 import { Input } from '../../shared/components/ui/Input'
-import { Loader } from '../../shared/components/ui/Loader'
 import { Modal } from '../../shared/components/ui/Modal'
 import { extractErrorMessage } from '../../shared/lib/errors'
 import type { Category } from '../../shared/types'
 import { AdminEntityDrawer } from './AdminEntityDrawer'
-import { AdminTabs } from './AdminTabs'
+import { AdminFilterToolbar } from './AdminFilterToolbar'
+import { AdminPageLayout } from './AdminPageLayout'
+import { AdminPageState } from './AdminPageState'
+import {
+  activityFilterOptions,
+  type AdminActivityFilter,
+  matchesActivityFilter,
+  normalizeOptionalText,
+} from './adminShared'
 
-type StatusFilter = 'ACTIVE' | 'INACTIVE' | 'ALL'
 type DrawerMode = 'create' | 'edit' | null
 
 const emptyCategory: CategoryPayload = {
@@ -24,12 +29,6 @@ const emptyCategory: CategoryPayload = {
   description: '',
   active: true,
 }
-
-const statusOptions: Array<{ value: StatusFilter; label: string }> = [
-  { value: 'ACTIVE', label: 'Активные' },
-  { value: 'INACTIVE', label: 'Неактивные' },
-  { value: 'ALL', label: 'Все' },
-]
 
 function toCategoryPayload(category: Category): CategoryPayload {
   return {
@@ -39,17 +38,12 @@ function toCategoryPayload(category: Category): CategoryPayload {
   }
 }
 
-function normalizeOptionalText(value?: string | null) {
-  const trimmed = value?.trim()
-  return trimmed ? trimmed : null
-}
-
 export function AdminCategoriesPage() {
   const queryClient = useQueryClient()
   const { showToast } = useToast()
   const [drawerMode, setDrawerMode] = useState<DrawerMode>(null)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ACTIVE')
+  const [statusFilter, setStatusFilter] = useState<AdminActivityFilter>('ACTIVE')
   const [search, setSearch] = useState('')
   const [pendingRowId, setPendingRowId] = useState<string | null>(null)
   const [deactivationTarget, setDeactivationTarget] = useState<Category | null>(null)
@@ -89,35 +83,6 @@ export function AdminCategoriesPage() {
     setSelectedCategory(null)
     setDiscardModalOpen(false)
     reset(emptyCategory)
-  }
-
-  const handleDrawerClose = () => {
-    if (saveMutation.isPending) {
-      return
-    }
-
-    if (isDirty) {
-      setDiscardModalOpen(true)
-      return
-    }
-
-    closeDrawerImmediately()
-  }
-
-  const openCreateDrawer = () => {
-    setSelectedCategory(null)
-    setDrawerMode('create')
-    setDiscardModalOpen(false)
-    saveMutation.reset()
-    reset(emptyCategory)
-  }
-
-  const openEditDrawer = (category: Category) => {
-    setSelectedCategory(category)
-    setDrawerMode('edit')
-    setDiscardModalOpen(false)
-    saveMutation.reset()
-    reset(toCategoryPayload(category))
   }
 
   const saveMutation = useMutation({
@@ -174,15 +139,40 @@ export function AdminCategoriesPage() {
     },
   })
 
+  const handleDrawerClose = () => {
+    if (saveMutation.isPending) {
+      return
+    }
+
+    if (isDirty) {
+      setDiscardModalOpen(true)
+      return
+    }
+
+    closeDrawerImmediately()
+  }
+
+  const openCreateDrawer = () => {
+    setSelectedCategory(null)
+    setDrawerMode('create')
+    setDiscardModalOpen(false)
+    saveMutation.reset()
+    reset(emptyCategory)
+  }
+
+  const openEditDrawer = (category: Category) => {
+    setSelectedCategory(category)
+    setDrawerMode('edit')
+    setDiscardModalOpen(false)
+    saveMutation.reset()
+    reset(toCategoryPayload(category))
+  }
+
   const filteredCategories = useMemo(() => {
     const query = search.trim().toLowerCase()
 
     return (categoriesQuery.data ?? []).filter((category) => {
-      if (statusFilter === 'ACTIVE' && !category.active) {
-        return false
-      }
-
-      if (statusFilter === 'INACTIVE' && category.active) {
+      if (!matchesActivityFilter(category.active, statusFilter)) {
         return false
       }
 
@@ -229,58 +219,39 @@ export function AdminCategoriesPage() {
   })
 
   return (
-    <div className="page admin-page">
-      <AdminTabs />
-
-      <section className="page-head">
-        <div>
-          <h1 className="page-title">Категории</h1>
-          <p className="page-subtitle">Структура каталога и управление доступностью категорий.</p>
-        </div>
+    <AdminPageLayout
+      title="Категории"
+      subtitle="Структура каталога и управление доступностью категорий."
+      actions={
         <Button type="button" onClick={openCreateDrawer}>
           Создать категорию
         </Button>
-      </section>
+      }
+    >
+      <AdminFilterToolbar
+        search={search}
+        searchPlaceholder="Поиск по названию или описанию"
+        onSearchChange={setSearch}
+        filters={activityFilterOptions}
+        activeFilter={statusFilter}
+        onFilterChange={setStatusFilter}
+        filtersAriaLabel="Фильтр по статусу категорий"
+      />
 
-      <Card>
-        <div className="admin-toolbar">
-          <Input
-            placeholder="Поиск по названию или описанию"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <div className="admin-filters" aria-label="Фильтр по статусу категорий">
-            {statusOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={['chip', statusFilter === option.value ? 'active' : ''].join(' ').trim()}
-                onClick={() => setStatusFilter(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Card>
-
-      {categoriesQuery.isLoading ? (
-        <Loader label="Загружаем категории" />
-      ) : categoriesQuery.isError || !categoriesQuery.data ? (
-        <Card>
-          <div className="error">{extractErrorMessage(categoriesQuery.error)}</div>
-        </Card>
-      ) : filteredCategories.length === 0 ? (
-        <EmptyState
-          title={emptyTitle}
-          description={emptyDescription}
-          action={
-            <Button type="button" onClick={openCreateDrawer}>
-              Создать категорию
-            </Button>
-          }
-        />
-      ) : (
+      <AdminPageState
+        isLoading={categoriesQuery.isLoading}
+        isError={categoriesQuery.isError || !categoriesQuery.data}
+        error={categoriesQuery.error}
+        isEmpty={filteredCategories.length === 0}
+        loadingLabel="Загружаем категории"
+        emptyTitle={emptyTitle}
+        emptyDescription={emptyDescription}
+        emptyAction={
+          <Button type="button" onClick={openCreateDrawer}>
+            Создать категорию
+          </Button>
+        }
+      >
         <Card>
           <table className="table">
             <thead>
@@ -334,7 +305,7 @@ export function AdminCategoriesPage() {
             </tbody>
           </table>
         </Card>
-      )}
+      </AdminPageState>
 
       <AdminEntityDrawer
         open={drawerMode !== null}
@@ -416,6 +387,6 @@ export function AdminCategoriesPage() {
         onClose={() => setDiscardModalOpen(false)}
         onConfirm={closeDrawerImmediately}
       />
-    </div>
+    </AdminPageLayout>
   )
 }

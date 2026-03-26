@@ -120,7 +120,11 @@ export function CartPage() {
                   {cart.items.map((item) => {
                     const pending = changingProductId === item.productId || removingProductId === item.productId
                     return (
-                      <tr key={item.id}>
+                      <tr
+                        key={item.id}
+                        data-product-id={item.productId}
+                        data-product-name={item.productName}
+                      >
                         <td>
                           <strong>{item.productName}</strong>
                           <div className="muted">Доступно: {item.availableQuantity}</div>

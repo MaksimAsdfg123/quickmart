@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+﻿import { NavLink } from 'react-router-dom'
 
 const tabs = [
   { to: '/admin/products', label: 'Товары' },
@@ -15,7 +15,7 @@ export function AdminTabs() {
         <NavLink
           key={tab.to}
           to={tab.to}
-          className={({ isActive }) => ['admin-tab', isActive ? 'active' : ''].join(' ')}
+          className={({ isActive }) => ['admin-tab', isActive ? 'active' : ''].join(' ').trim()}
         >
           {tab.label}
         </NavLink>

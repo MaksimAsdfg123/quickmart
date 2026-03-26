@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+﻿import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 
 import { adminApi } from '../../api/adminApi'
@@ -7,9 +7,6 @@ import { Badge } from '../../shared/components/ui/Badge'
 import { Button } from '../../shared/components/ui/Button'
 import { Card } from '../../shared/components/ui/Card'
 import { Drawer } from '../../shared/components/ui/Drawer'
-import { EmptyState } from '../../shared/components/ui/EmptyState'
-import { Input } from '../../shared/components/ui/Input'
-import { Loader } from '../../shared/components/ui/Loader'
 import { Modal } from '../../shared/components/ui/Modal'
 import { extractErrorMessage } from '../../shared/lib/errors'
 import {
@@ -25,11 +22,14 @@ import {
   paymentStatusTone,
 } from '../../shared/lib/format'
 import type { Order, OrderStatus, OrderSummary, PageResponse } from '../../shared/types'
-import { AdminTabs } from './AdminTabs'
+import { AdminFilterToolbar } from './AdminFilterToolbar'
+import { AdminPageLayout } from './AdminPageLayout'
+import { AdminPageState } from './AdminPageState'
+import type { AdminFilterOption } from './adminShared'
 
 type OrderListFilter = 'ACTIVE' | 'ALL' | OrderStatus
 
-const orderFilters: Array<{ value: OrderListFilter; label: string }> = [
+const orderFilters: Array<AdminFilterOption<OrderListFilter>> = [
   { value: 'ACTIVE', label: 'Активные' },
   { value: 'CREATED', label: 'Создан' },
   { value: 'CONFIRMED', label: 'Подтвержден' },
@@ -58,16 +58,16 @@ function toOrderSummary(order: Order): OrderSummary {
   }
 }
 
-function matchesFilter(statusFilter: OrderListFilter, status: OrderStatus): boolean {
-  if (statusFilter === 'ALL') {
+function matchesFilter(filter: OrderListFilter, status: OrderStatus): boolean {
+  if (filter === 'ALL') {
     return true
   }
 
-  if (statusFilter === 'ACTIVE') {
+  if (filter === 'ACTIVE') {
     return activeStatuses.includes(status)
   }
 
-  return status === statusFilter
+  return status === filter
 }
 
 function getOrderActions(
@@ -134,7 +134,6 @@ export function AdminOrdersPage() {
 
         const nextSummary = toOrderSummary(order)
         const exists = current.content.some((item) => item.id === order.id)
-
         if (!exists) {
           return current
         }
@@ -170,7 +169,7 @@ export function AdminOrdersPage() {
   const currentOrder = detailsQuery.data
   const currentActions = currentOrder ? getOrderActions(currentOrder) : []
 
-  const localFilteredOrders = useMemo(() => {
+  const filteredOrders = useMemo(() => {
     const query = normalizedQuery.toLowerCase()
 
     return (ordersQuery.data?.content ?? []).filter((order) => {
@@ -186,145 +185,115 @@ export function AdminOrdersPage() {
   }, [normalizedQuery, ordersQuery.data])
 
   return (
-    <div className="page admin-page">
-      <AdminTabs />
+    <AdminPageLayout
+      title="Заказы"
+      subtitle="Операционная очередь: быстрый triage и смена статусов только в деталях заказа."
+    >
+      <AdminFilterToolbar
+        search={search}
+        searchPlaceholder="Поиск по коду заказа, номеру или адресу"
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
+        filters={orderFilters}
+        activeFilter={statusFilter}
+        onFilterChange={(value) => {
+          setStatusFilter(value)
+          setPage(0)
+        }}
+        filtersAriaLabel="Фильтр по статусу заказов"
+      />
 
-      <section className="page-head">
-        <div>
-          <h1 className="page-title">Заказы</h1>
-          <p className="page-subtitle">
-            Операционная очередь: быстрый triage и смена статусов только в деталях заказа.
-          </p>
-        </div>
-      </section>
-
-      <Card>
-        <div className="admin-toolbar">
-          <Input
-            placeholder="Поиск по коду заказа, номеру или адресу"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value)
-              setPage(0)
-            }}
-          />
-          <div className="admin-filters" aria-label="Фильтр по статусу заказов">
-            {orderFilters.map((filter) => (
-              <button
-                key={filter.value}
-                type="button"
-                className={['chip', statusFilter === filter.value ? 'active' : ''].join(' ').trim()}
-                onClick={() => {
-                  setStatusFilter(filter.value)
-                  setPage(0)
-                }}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Card>
-
-      {ordersQuery.isLoading ? (
-        <Loader label="Загружаем заказы" />
-      ) : ordersQuery.isError || !ordersQuery.data ? (
+      <AdminPageState
+        isLoading={ordersQuery.isLoading}
+        isError={ordersQuery.isError || !ordersQuery.data}
+        error={ordersQuery.error}
+        isEmpty={filteredOrders.length === 0}
+        loadingLabel="Загружаем заказы"
+        emptyTitle="Заказы не найдены"
+        emptyDescription="Измените фильтр, номер заказа, код поддержки или адрес доставки."
+      >
         <Card>
-          <div className="error">{extractErrorMessage(ordersQuery.error)}</div>
-        </Card>
-      ) : localFilteredOrders.length === 0 ? (
-        <EmptyState
-          title="Заказы не найдены"
-          description="Измените фильтр, номер заказа, код поддержки или адрес доставки."
-        />
-      ) : (
-        <>
-          <Card>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Заказ</th>
-                  <th>Статус</th>
-                  <th>Доставка</th>
-                  <th>Оплата</th>
-                  <th>Сумма</th>
-                  <th>Действия</th>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Заказ</th>
+                <th>Статус</th>
+                <th>Доставка</th>
+                <th>Оплата</th>
+                <th>Сумма</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredOrders.map((order) => (
+                <tr key={order.id}>
+                  <td>
+                    <div className="admin-row-main">
+                      <strong>№{formatOrderNumber(order.id)}</strong>
+                      <div className="admin-row-support">
+                        <span className="muted muted--compact">Код {formatOrderSupportCode(order.id)}</span>
+                        <span className="muted muted--compact">{order.itemsCount} поз.</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <Badge tone={orderStatusTone(order.status)}>{orderStatusLabel(order.status)}</Badge>
+                  </td>
+                  <td>
+                    <div className="admin-row-main">
+                      <strong>{formatDate(order.deliveryDate)}</strong>
+                      <div className="muted muted--compact">
+                        {order.deliveryStartTime}-{order.deliveryEndTime}
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="admin-row-main">
+                      <Badge tone={paymentStatusTone(order.paymentStatus)}>
+                        {paymentStatusLabel(order.paymentStatus)}
+                      </Badge>
+                      <div className="muted muted--compact">{paymentMethodLabel(order.paymentMethod)}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="admin-row-main">
+                      <strong>{formatMoney(order.total)}</strong>
+                      <div className="muted muted--compact">{formatDateTime(order.createdAt)}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <Button variant="neutral" size="sm" type="button" onClick={() => setSelectedOrderId(order.id)}>
+                      Открыть
+                    </Button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {localFilteredOrders.map((order) => (
-                  <tr key={order.id}>
-                    <td>
-                      <div className="admin-row-main">
-                        <strong>№{formatOrderNumber(order.id)}</strong>
-                        <div className="admin-row-support">
-                          <span className="muted muted--compact">Код {formatOrderSupportCode(order.id)}</span>
-                          <span className="muted muted--compact">{order.itemsCount} поз.</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <Badge tone={orderStatusTone(order.status)}>{orderStatusLabel(order.status)}</Badge>
-                    </td>
-                    <td>
-                      <div className="admin-row-main">
-                        <strong>{formatDate(order.deliveryDate)}</strong>
-                        <div className="muted muted--compact">
-                          {order.deliveryStartTime}-{order.deliveryEndTime}
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="admin-row-main">
-                        <Badge tone={paymentStatusTone(order.paymentStatus)}>
-                          {paymentStatusLabel(order.paymentStatus)}
-                        </Badge>
-                        <div className="muted muted--compact">{paymentMethodLabel(order.paymentMethod)}</div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="admin-row-main">
-                        <strong>{formatMoney(order.total)}</strong>
-                        <div className="muted muted--compact">{formatDateTime(order.createdAt)}</div>
-                      </div>
-                    </td>
-                    <td>
-                      <Button variant="neutral" size="sm" type="button" onClick={() => setSelectedOrderId(order.id)}>
-                        Открыть
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
+              ))}
+            </tbody>
+          </table>
+        </Card>
 
-          {ordersQuery.data.totalPages > 1 ? (
-            <div className="admin-pagination">
-              <span className="muted">
-                Страница {ordersQuery.data.page + 1} из {ordersQuery.data.totalPages}
-              </span>
-              <div className="admin-inline-actions">
-                <Button
-                  variant="neutral"
-                  type="button"
-                  disabled={page === 0}
-                  onClick={() => setPage((prev) => prev - 1)}
-                >
-                  Назад
-                </Button>
-                <Button
-                  type="button"
-                  disabled={page + 1 >= ordersQuery.data.totalPages}
-                  onClick={() => setPage((prev) => prev + 1)}
-                >
-                  Далее
-                </Button>
-              </div>
+        {ordersQuery.data && ordersQuery.data.totalPages > 1 ? (
+          <div className="admin-pagination">
+            <span className="muted">
+              Страница {ordersQuery.data.page + 1} из {ordersQuery.data.totalPages}
+            </span>
+            <div className="admin-inline-actions">
+              <Button variant="neutral" type="button" disabled={page === 0} onClick={() => setPage((prev) => prev - 1)}>
+                Назад
+              </Button>
+              <Button
+                type="button"
+                disabled={page + 1 >= ordersQuery.data.totalPages}
+                onClick={() => setPage((prev) => prev + 1)}
+              >
+                Далее
+              </Button>
             </div>
-          ) : null}
-        </>
-      )}
+          </div>
+        ) : null}
+      </AdminPageState>
 
       <Drawer
         open={selectedOrderId !== null}
@@ -374,128 +343,134 @@ export function AdminOrdersPage() {
           </>
         }
       >
-        {detailsQuery.isLoading ? (
-          <Loader label="Загружаем детали заказа" />
-        ) : detailsQuery.isError || !currentOrder ? (
-          <div className="error">{extractErrorMessage(detailsQuery.error)}</div>
-        ) : (
-          <div className="grid">
-            <Card>
-              <div className="title-row">
-                <h3>Статус заказа</h3>
-                <Badge tone={orderStatusTone(currentOrder.status)}>{orderStatusLabel(currentOrder.status)}</Badge>
-              </div>
-              {currentOrder.status === 'CANCELLED' ? (
-                <p className="muted muted--spaced">Заказ отменен. Дополнительные переходы статуса недоступны.</p>
-              ) : (
-                <div className="status-block">
-                  <div className="status-line">
-                    {workflowSteps.map((step, index) => {
-                      const currentIndex = workflowSteps.indexOf(currentOrder.status)
-                      const done = index < currentIndex
-                      const active = step === currentOrder.status
-                      return (
-                        <span
-                          key={step}
-                          className={['status-step', done ? 'done' : '', active ? 'active' : ''].join(' ').trim()}
-                        >
-                          {orderStatusLabel(step)}
-                        </span>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-            </Card>
-
-            <div className="admin-form-grid">
+        <AdminPageState
+          isLoading={detailsQuery.isLoading}
+          isError={detailsQuery.isError || !currentOrder}
+          error={detailsQuery.error}
+          isEmpty={false}
+          loadingLabel="Загружаем детали заказа"
+          emptyTitle=""
+          emptyDescription=""
+        >
+          {currentOrder ? (
+            <div className="grid">
               <Card>
-                <h3>Доставка</h3>
-                <div className="order-summary">
-                  <div className="order-summary__line">
-                    <span>Адрес</span>
-                    <strong>{currentOrder.addressSnapshot}</strong>
-                  </div>
-                  <div className="order-summary__line">
-                    <span>Слот</span>
-                    <strong>
-                      {formatDate(currentOrder.deliveryDate)} {currentOrder.deliveryStartTime}-
-                      {currentOrder.deliveryEndTime}
-                    </strong>
-                  </div>
+                <div className="title-row">
+                  <h3>Статус заказа</h3>
+                  <Badge tone={orderStatusTone(currentOrder.status)}>{orderStatusLabel(currentOrder.status)}</Badge>
                 </div>
+                {currentOrder.status === 'CANCELLED' ? (
+                  <p className="muted muted--spaced">Заказ отменен. Дополнительные переходы статуса недоступны.</p>
+                ) : (
+                  <div className="status-block">
+                    <div className="status-line">
+                      {workflowSteps.map((step, index) => {
+                        const currentIndex = workflowSteps.indexOf(currentOrder.status)
+                        const done = index < currentIndex
+                        const active = step === currentOrder.status
+                        return (
+                          <span
+                            key={step}
+                            className={['status-step', done ? 'done' : '', active ? 'active' : ''].join(' ').trim()}
+                          >
+                            {orderStatusLabel(step)}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </Card>
+
+              <div className="admin-form-grid">
+                <Card>
+                  <h3>Доставка</h3>
+                  <div className="order-summary">
+                    <div className="order-summary__line">
+                      <span>Адрес</span>
+                      <strong>{currentOrder.addressSnapshot}</strong>
+                    </div>
+                    <div className="order-summary__line">
+                      <span>Слот</span>
+                      <strong>
+                        {formatDate(currentOrder.deliveryDate)} {currentOrder.deliveryStartTime}-
+                        {currentOrder.deliveryEndTime}
+                      </strong>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card>
+                  <h3>Оплата</h3>
+                  <div className="order-summary">
+                    <div className="order-summary__line">
+                      <span>Способ</span>
+                      <strong>{paymentMethodLabel(currentOrder.paymentMethod)}</strong>
+                    </div>
+                    <div className="order-summary__line">
+                      <span>Статус</span>
+                      <Badge tone={paymentStatusTone(currentOrder.paymentStatus)}>
+                        {paymentStatusLabel(currentOrder.paymentStatus)}
+                      </Badge>
+                    </div>
+                    {currentOrder.promoCode ? (
+                      <div className="order-summary__line">
+                        <span>Промокод</span>
+                        <strong>{currentOrder.promoCode}</strong>
+                      </div>
+                    ) : null}
+                  </div>
+                </Card>
+              </div>
+
+              <Card>
+                <h3>Состав заказа</h3>
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Товар</th>
+                      <th>Цена</th>
+                      <th>Кол-во</th>
+                      <th>Сумма</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentOrder.items.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.productName}</td>
+                        <td>{formatMoney(item.unitPrice)}</td>
+                        <td>{item.quantity}</td>
+                        <td>{formatMoney(item.lineTotal)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </Card>
 
               <Card>
-                <h3>Оплата</h3>
+                <h3>Итоги</h3>
                 <div className="order-summary">
                   <div className="order-summary__line">
-                    <span>Способ</span>
-                    <strong>{paymentMethodLabel(currentOrder.paymentMethod)}</strong>
+                    <span>Товары</span>
+                    <strong>{formatMoney(currentOrder.subtotal)}</strong>
                   </div>
                   <div className="order-summary__line">
-                    <span>Статус</span>
-                    <Badge tone={paymentStatusTone(currentOrder.paymentStatus)}>
-                      {paymentStatusLabel(currentOrder.paymentStatus)}
-                    </Badge>
+                    <span>Скидка</span>
+                    <strong>{formatMoney(currentOrder.discount)}</strong>
                   </div>
-                  {currentOrder.promoCode ? (
-                    <div className="order-summary__line">
-                      <span>Промокод</span>
-                      <strong>{currentOrder.promoCode}</strong>
-                    </div>
-                  ) : null}
+                  <div className="order-summary__line">
+                    <span>Доставка</span>
+                    <strong>{formatMoney(currentOrder.deliveryFee)}</strong>
+                  </div>
+                  <div className="order-summary__line order-summary__total">
+                    <span>Итого</span>
+                    <strong>{formatMoney(currentOrder.total)}</strong>
+                  </div>
                 </div>
               </Card>
             </div>
-
-            <Card>
-              <h3>Состав заказа</h3>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Товар</th>
-                    <th>Цена</th>
-                    <th>Кол-во</th>
-                    <th>Сумма</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentOrder.items.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.productName}</td>
-                      <td>{formatMoney(item.unitPrice)}</td>
-                      <td>{item.quantity}</td>
-                      <td>{formatMoney(item.lineTotal)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Card>
-
-            <Card>
-              <h3>Итоги</h3>
-              <div className="order-summary">
-                <div className="order-summary__line">
-                  <span>Товары</span>
-                  <strong>{formatMoney(currentOrder.subtotal)}</strong>
-                </div>
-                <div className="order-summary__line">
-                  <span>Скидка</span>
-                  <strong>{formatMoney(currentOrder.discount)}</strong>
-                </div>
-                <div className="order-summary__line">
-                  <span>Доставка</span>
-                  <strong>{formatMoney(currentOrder.deliveryFee)}</strong>
-                </div>
-                <div className="order-summary__line order-summary__total">
-                  <span>Итого</span>
-                  <strong>{formatMoney(currentOrder.total)}</strong>
-                </div>
-              </div>
-            </Card>
-          </div>
-        )}
+          ) : null}
+        </AdminPageState>
       </Drawer>
 
       <Modal
@@ -519,6 +494,6 @@ export function AdminOrdersPage() {
           }
         }}
       />
-    </div>
+    </AdminPageLayout>
   )
 }

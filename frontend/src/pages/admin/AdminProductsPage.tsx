@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+﻿import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -7,18 +7,23 @@ import { useToast } from '../../shared/components/ToastProvider'
 import { Badge } from '../../shared/components/ui/Badge'
 import { Button } from '../../shared/components/ui/Button'
 import { Card } from '../../shared/components/ui/Card'
-import { EmptyState } from '../../shared/components/ui/EmptyState'
 import { Input } from '../../shared/components/ui/Input'
-import { Loader } from '../../shared/components/ui/Loader'
 import { Modal } from '../../shared/components/ui/Modal'
 import { Select } from '../../shared/components/ui/Select'
 import { extractErrorMessage } from '../../shared/lib/errors'
 import { formatMoney } from '../../shared/lib/format'
 import type { Category, PageResponse, Product } from '../../shared/types'
 import { AdminEntityDrawer } from './AdminEntityDrawer'
-import { AdminTabs } from './AdminTabs'
+import { AdminFilterToolbar } from './AdminFilterToolbar'
+import { AdminPageLayout } from './AdminPageLayout'
+import { AdminPageState } from './AdminPageState'
+import {
+  activityFilterOptions,
+  type AdminActivityFilter,
+  matchesActivityFilter,
+  normalizeOptionalText,
+} from './adminShared'
 
-type StatusFilter = 'ACTIVE' | 'INACTIVE' | 'ALL'
 type DrawerMode = 'create' | 'edit' | null
 
 const emptyProduct: ProductPayload = {
@@ -29,12 +34,6 @@ const emptyProduct: ProductPayload = {
   imageUrl: '',
   active: true,
 }
-
-const statusOptions: Array<{ value: StatusFilter; label: string }> = [
-  { value: 'ACTIVE', label: 'Активные' },
-  { value: 'INACTIVE', label: 'Неактивные' },
-  { value: 'ALL', label: 'Все' },
-]
 
 function toProductPayload(product: Product): ProductPayload {
   return {
@@ -47,17 +46,12 @@ function toProductPayload(product: Product): ProductPayload {
   }
 }
 
-function normalizeOptionalText(value?: string | null) {
-  const trimmed = value?.trim()
-  return trimmed ? trimmed : null
-}
-
 export function AdminProductsPage() {
   const queryClient = useQueryClient()
   const { showToast } = useToast()
   const [drawerMode, setDrawerMode] = useState<DrawerMode>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ACTIVE')
+  const [statusFilter, setStatusFilter] = useState<AdminActivityFilter>('ACTIVE')
   const [search, setSearch] = useState('')
   const [pendingRowId, setPendingRowId] = useState<string | null>(null)
   const [deactivationTarget, setDeactivationTarget] = useState<Product | null>(null)
@@ -69,7 +63,7 @@ export function AdminProductsPage() {
   })
   const categoriesQuery = useQuery({
     queryKey: ['admin-categories'],
-    queryFn: adminApi.listCategories,
+    queryFn: () => adminApi.listCategories(),
   })
 
   const {
@@ -105,35 +99,6 @@ export function AdminProductsPage() {
     setSelectedProduct(null)
     setDiscardModalOpen(false)
     reset(emptyProduct)
-  }
-
-  const handleDrawerClose = () => {
-    if (saveMutation.isPending) {
-      return
-    }
-
-    if (isDirty) {
-      setDiscardModalOpen(true)
-      return
-    }
-
-    closeDrawerImmediately()
-  }
-
-  const openCreateDrawer = () => {
-    setSelectedProduct(null)
-    setDrawerMode('create')
-    setDiscardModalOpen(false)
-    saveMutation.reset()
-    reset(emptyProduct)
-  }
-
-  const openEditDrawer = (product: Product) => {
-    setSelectedProduct(product)
-    setDrawerMode('edit')
-    setDiscardModalOpen(false)
-    saveMutation.reset()
-    reset(toProductPayload(product))
   }
 
   const saveMutation = useMutation({
@@ -190,6 +155,35 @@ export function AdminProductsPage() {
     },
   })
 
+  const handleDrawerClose = () => {
+    if (saveMutation.isPending) {
+      return
+    }
+
+    if (isDirty) {
+      setDiscardModalOpen(true)
+      return
+    }
+
+    closeDrawerImmediately()
+  }
+
+  const openCreateDrawer = () => {
+    setSelectedProduct(null)
+    setDrawerMode('create')
+    setDiscardModalOpen(false)
+    saveMutation.reset()
+    reset(emptyProduct)
+  }
+
+  const openEditDrawer = (product: Product) => {
+    setSelectedProduct(product)
+    setDrawerMode('edit')
+    setDiscardModalOpen(false)
+    saveMutation.reset()
+    reset(toProductPayload(product))
+  }
+
   const categories = categoriesQuery.data ?? []
   const hasCategories = categories.length > 0
   const drawerOpen = drawerMode !== null
@@ -198,11 +192,7 @@ export function AdminProductsPage() {
     const query = search.trim().toLowerCase()
 
     return (productsQuery.data?.content ?? []).filter((product) => {
-      if (statusFilter === 'ACTIVE' && !product.active) {
-        return false
-      }
-
-      if (statusFilter === 'INACTIVE' && product.active) {
+      if (!matchesActivityFilter(product.active, statusFilter)) {
         return false
       }
 
@@ -264,58 +254,39 @@ export function AdminProductsPage() {
   })
 
   return (
-    <div className="page admin-page">
-      <AdminTabs />
-
-      <section className="page-head">
-        <div>
-          <h1 className="page-title">Товары</h1>
-          <p className="page-subtitle">Быстрое управление карточками и статусами каталога.</p>
-        </div>
+    <AdminPageLayout
+      title="Товары"
+      subtitle="Быстрое управление карточками и статусами каталога."
+      actions={
         <Button type="button" onClick={openCreateDrawer}>
           Создать товар
         </Button>
-      </section>
+      }
+    >
+      <AdminFilterToolbar
+        search={search}
+        searchPlaceholder="Поиск по названию, категории или описанию"
+        onSearchChange={setSearch}
+        filters={activityFilterOptions}
+        activeFilter={statusFilter}
+        onFilterChange={setStatusFilter}
+        filtersAriaLabel="Фильтр по статусу товаров"
+      />
 
-      <Card>
-        <div className="admin-toolbar">
-          <Input
-            placeholder="Поиск по названию, категории или описанию"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <div className="admin-filters" aria-label="Фильтр по статусу товаров">
-            {statusOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={['chip', statusFilter === option.value ? 'active' : ''].join(' ').trim()}
-                onClick={() => setStatusFilter(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Card>
-
-      {productsQuery.isLoading ? (
-        <Loader label="Загружаем товары" />
-      ) : productsQuery.isError || !productsQuery.data ? (
-        <Card>
-          <div className="error">{extractErrorMessage(productsQuery.error)}</div>
-        </Card>
-      ) : filteredProducts.length === 0 ? (
-        <EmptyState
-          title={emptyTitle}
-          description={emptyDescription}
-          action={
-            <Button type="button" onClick={openCreateDrawer}>
-              Создать товар
-            </Button>
-          }
-        />
-      ) : (
+      <AdminPageState
+        isLoading={productsQuery.isLoading}
+        isError={productsQuery.isError || !productsQuery.data}
+        error={productsQuery.error}
+        isEmpty={filteredProducts.length === 0}
+        loadingLabel="Загружаем товары"
+        emptyTitle={emptyTitle}
+        emptyDescription={emptyDescription}
+        emptyAction={
+          <Button type="button" onClick={openCreateDrawer}>
+            Создать товар
+          </Button>
+        }
+      >
         <Card>
           <table className="table">
             <thead>
@@ -372,7 +343,7 @@ export function AdminProductsPage() {
             </tbody>
           </table>
         </Card>
-      )}
+      </AdminPageState>
 
       <AdminEntityDrawer
         open={drawerOpen}
@@ -498,6 +469,6 @@ export function AdminProductsPage() {
         onClose={() => setDiscardModalOpen(false)}
         onConfirm={closeDrawerImmediately}
       />
-    </div>
+    </AdminPageLayout>
   )
 }

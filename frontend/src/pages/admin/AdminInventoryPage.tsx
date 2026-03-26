@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+﻿import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 
 import { adminApi } from '../../api/adminApi'
@@ -6,17 +6,18 @@ import { useToast } from '../../shared/components/ToastProvider'
 import { Badge } from '../../shared/components/ui/Badge'
 import { Button } from '../../shared/components/ui/Button'
 import { Card } from '../../shared/components/ui/Card'
-import { EmptyState } from '../../shared/components/ui/EmptyState'
 import { Input } from '../../shared/components/ui/Input'
-import { Loader } from '../../shared/components/ui/Loader'
 import { extractErrorMessage } from '../../shared/lib/errors'
 import { formatMoney } from '../../shared/lib/format'
 import type { InventoryStock } from '../../shared/types'
-import { AdminTabs } from './AdminTabs'
+import { AdminFilterToolbar } from './AdminFilterToolbar'
+import { AdminPageLayout } from './AdminPageLayout'
+import { AdminPageState } from './AdminPageState'
+import type { AdminFilterOption } from './adminShared'
 
 type InventoryFilter = 'ACTIVE' | 'ALL'
 
-const inventoryFilters: Array<{ value: InventoryFilter; label: string }> = [
+const inventoryFilters: Array<AdminFilterOption<InventoryFilter>> = [
   { value: 'ACTIVE', label: 'Активные товары' },
   { value: 'ALL', label: 'Все' },
 ]
@@ -120,50 +121,29 @@ export function AdminInventoryPage() {
   }
 
   return (
-    <div className="page admin-page">
-      <AdminTabs />
+    <AdminPageLayout
+      title="Остатки"
+      subtitle="Операционное управление доступным количеством товаров без ухода со списка."
+    >
+      <AdminFilterToolbar
+        search={search}
+        searchPlaceholder="Поиск по товару или категории"
+        onSearchChange={setSearch}
+        filters={inventoryFilters}
+        activeFilter={statusFilter}
+        onFilterChange={setStatusFilter}
+        filtersAriaLabel="Фильтр по статусу товаров"
+      />
 
-      <section className="page-head">
-        <div>
-          <h1 className="page-title">Остатки</h1>
-          <p className="page-subtitle">Операционное управление доступным количеством товаров без ухода со списка.</p>
-        </div>
-      </section>
-
-      <Card>
-        <div className="admin-toolbar">
-          <Input
-            placeholder="Поиск по товару или категории"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <div className="admin-filters" aria-label="Фильтр по статусу товаров">
-            {inventoryFilters.map((filter) => (
-              <button
-                key={filter.value}
-                type="button"
-                className={['chip', statusFilter === filter.value ? 'active' : ''].join(' ').trim()}
-                onClick={() => setStatusFilter(filter.value)}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Card>
-
-      {inventoryQuery.isLoading ? (
-        <Loader label="Загружаем остатки" />
-      ) : inventoryQuery.isError || !inventoryQuery.data ? (
-        <Card>
-          <div className="error">{extractErrorMessage(inventoryQuery.error)}</div>
-        </Card>
-      ) : filteredRows.length === 0 ? (
-        <EmptyState
-          title="Ничего не найдено"
-          description="Измените поисковый запрос или переключите фильтр отображения."
-        />
-      ) : (
+      <AdminPageState
+        isLoading={inventoryQuery.isLoading}
+        isError={inventoryQuery.isError || !inventoryQuery.data}
+        error={inventoryQuery.error}
+        isEmpty={filteredRows.length === 0}
+        loadingLabel="Загружаем остатки"
+        emptyTitle="Ничего не найдено"
+        emptyDescription="Измените поисковый запрос или переключите фильтр отображения."
+      >
         <Card>
           <table className="table">
             <thead>
@@ -260,7 +240,7 @@ export function AdminInventoryPage() {
             </tbody>
           </table>
         </Card>
-      )}
-    </div>
+      </AdminPageState>
+    </AdminPageLayout>
   )
 }
