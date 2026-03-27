@@ -1,7 +1,11 @@
-# Архитектура API automation (Auth block)
+# Архитектура backend API-тестов (Suite + Shared)
 
-## Назначение
-Данный слой реализует production-like основу API автотестов для блока аутентификации (`/api/auth/**`) и связанных проверок авторизации на защищенных endpoint'ах.
+## Цель
+Backend test layer организован по принципу:
+- `suites` — только сценарные тесты;
+- `shared` — только переиспользуемая инфраструктура и доменные хелперы.
+
+Это снижает связанность и упрощает навигацию: сначала видно, какие тесты есть, затем чем они поддержаны.
 
 ## Физическая структура
 
@@ -10,59 +14,53 @@ tests/
   config/
     test-environment.properties
   backend/
-    api/
-      kotlin/com/quickmart/test/api/test/
-        AuthApiTest.kt
-    support/
-      kotlin/com/quickmart/test/support/
-        config/
-        base/
-        spec/
-        listener/
-        client/
-        model/
-        data/
-        scenario/
-        assertion/
-        util/
+    suites/
+      kotlin/com/quickmart/test/suites/
+        api/
+          auth/
+            AuthApiTest.kt
+    shared/
+      kotlin/com/quickmart/test/shared/
+        foundation/
+          BaseApiTest.kt
+          ApiTestEnvironment.kt
+          ApiSpecifications.kt
+          AllureHttpLoggingFilter.kt
+          AllureSteps.kt
+          ResponseMappers.kt
+        clients/
+          AuthApiClient.kt
+          CartApiClient.kt
+          AdminProductsApiClient.kt
+        auth/
+          model/
+          data/
+          scenario/
+          assertion/
+        common/
+          util/
+            RandomDataUtils.kt
     resources/
       application-test.yml
       allure.properties
       junit-platform.properties
 ```
 
-## Ответственность слоев
+## Роли слоев
+- `suites`: короткие тесты уровня бизнес-сценария.
+- `shared/foundation`: общая платформа тестов (конфиг, base class, specs, Allure/logging).
+- `shared/clients`: endpoint-ориентированные REST-клиенты без assertions.
+- `shared/<domain>`: доменные модели, фабрики данных, сценарии и проверки.
+- `shared/common`: общие утилиты, не привязанные к конкретному домену.
 
-- `config`: централизованная загрузка test environment (`ApiTestEnvironmentLoader`) с приоритетом `ENV -> properties -> fallback`.
-- `base`: общий bootstrap для тестов (`BaseApiTest`), инициализация specs/clients/scenarios.
-- `spec`: единые request/response specifications Rest Assured, таймауты, базовые headers.
-- `listener`: централизованный HTTP filter (`AllureHttpLoggingFilter`) с вложениями request/response в Allure.
-- `client`: endpoint-ориентированные клиенты без бизнес-assertions (`AuthApiClient`, `CartApiClient`, `AdminProductsApiClient`).
-- `model`: test DTO для wire-contract parsing.
-- `data`: Object Mother + Builder (`AuthTestDataFactory`, `RegisterRequestBuilder`, `LoginRequestBuilder`).
-- `scenario`: orchestration бизнес-шагов, композиция вызовов API.
-- `assertion`: reusable бизнес-проверки response payload и error contract.
-- `test`: короткие, декларативные сценарии верхнего уровня.
+## Правила расширения
+1. Новый API-тест добавляется в `suites/api/<domain>`.
+2. Новый HTTP endpoint оформляется в `shared/clients`.
+3. Сложная бизнес-последовательность оформляется в `shared/<domain>/scenario`.
+4. Повторяемые проверки выносятся в `shared/<domain>/assertion`.
+5. Подготовка payload и генерация данных — в `shared/<domain>/data` и `shared/common/util`.
 
-## Реализованный набор сценариев
-
-### Позитивные
-- регистрация нового пользователя `CUSTOMER` с выдачей JWT;
-- создание доступной корзины для нового пользователя после регистрации;
-- login customer с нормализацией email по регистру;
-- login admin с ролью `ADMIN`;
-- повторяемая успешная регистрация + контроль отсутствия конфликтов в независимых тестах.
-
-### Негативные
-- login с неверным паролем (`401`);
-- duplicate registration email (`409`);
-- валидационная ошибка регистрации (`400` + `fieldErrors`);
-- доступ к защищенному endpoint без токена (`401`);
-- доступ customer к admin endpoint отклоняется (`401/403` в зависимости от security pipeline).
-
-## Принципы расширения
-
-- Новый endpoint добавляется через `client` + `scenario` + `assertion` без дублирования low-level HTTP кода в тестах.
-- Новый негативный сценарий должен использовать существующие helpers ошибок (`ErrorAssertions`) или расширять их.
-- Любой mutating сценарий обязан использовать уникальные тестовые данные для parallel-safe исполнения.
+## Package contract
+- Тесты: `com.quickmart.test.suites.*`
+- Инфраструктура и хелперы: `com.quickmart.test.shared.*`
 

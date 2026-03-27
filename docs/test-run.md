@@ -1,17 +1,20 @@
-# Запуск API automation
+# Запуск backend API-тестов
 
 ## Предусловия
-
 - Backend запущен и доступен по `API_BASE_URL` (по умолчанию `http://127.0.0.1:8080`).
-- В БД загружены миграции и seed-данные (`admin@quickmart.local`, `anna@example.com`).
+- Миграции и seed-данные применены.
 - Java 21 установлена.
 
-## Конфигурация окружения
+## Конфигурация
+- Общий файл: `tests/config/test-environment.properties`.
+- Backend test resources: `tests/backend/resources`.
 
-Общий файл: `tests/config/test-environment.properties`.
+Приоритет значений:
+1. Переменные окружения
+2. `test-environment.properties`
+3. Fallback в коде
 
-Поддерживается переопределение через переменные окружения:
-
+Ключевые env-переменные:
 - `API_BASE_URL`
 - `API_CONNECT_TIMEOUT_MS`
 - `API_READ_TIMEOUT_MS`
@@ -20,73 +23,41 @@
 - `AUTH_CUSTOMER_EMAIL`
 - `AUTH_CUSTOMER_PASSWORD`
 
-Приоритет: `ENV -> test-environment.properties -> fallback`.
+## Команды
 
-## Команды запуска
+### Компиляция тестов
+```bash
+.\gradlew.bat :backend:compileTestKotlin
+```
 
-### Локальный запуск API-suite
-
+### Только API-suite
 ```bash
 .\gradlew.bat :backend:apiTest
 ```
 
-### Полный backend test task
-
+### Полный backend test layer
 ```bash
 .\gradlew.bat :backend:test
 ```
 
-### CI запуск (пример)
-
-```bash
-./gradlew :backend:apiTest --no-daemon --stacktrace
-```
-
 ## Parallel execution
+- Настройки JUnit 5 лежат в `tests/backend/resources/junit-platform.properties`.
+- Включен concurrent запуск классов и методов.
+- Для безопасного параллелизма тесты обязаны использовать независимые тестовые данные.
 
-Файл: `tests/backend/resources/junit-platform.properties`.
+## Allure
+- Конфиг: `tests/backend/resources/allure.properties`
+- Результаты: `app/backend/build/allure-results`
 
-Включено:
-
-- `junit.jupiter.execution.parallel.enabled=true`
-- concurrent режим для методов и классов.
-
-Требования для безопасного параллельного прогона:
-
-- использовать уникальные тестовые данные;
-- не переиспользовать изменяемые сущности между тестами;
-- не опираться на порядок выполнения тестов.
-
-## Allure отчет
-
-### Генерация результатов
-
-Результаты сохраняются в:
-
-`app/backend/build/allure-results`
-
-через `tests/backend/resources/allure.properties`.
-
-### Построение отчета
-
-Если установлен Allure CLI:
-
+Пример генерации отчета:
 ```bash
 allure generate app/backend/build/allure-results --clean -o app/backend/build/allure-report
 allure open app/backend/build/allure-report
 ```
 
-## Failure diagnostics
+## Как добавить новый API-тест
+1. Добавить/обновить client в `tests/backend/shared/kotlin/com/quickmart/test/shared/clients`.
+2. Добавить доменный сценарий и assertions в `tests/backend/shared/kotlin/com/quickmart/test/shared/<domain>/...`.
+3. Добавить тест в `tests/backend/suites/kotlin/com/quickmart/test/suites/api/<domain>`.
+4. Запустить `:backend:apiTest`.
 
-На каждом HTTP вызове автоматически прикладываются:
-
-- attachment `HTTP Request: <METHOD> <URL>`
-  - method, URL, headers, query params, path params, body;
-- attachment `HTTP Response: <STATUS> <METHOD> <URL>`
-  - status, headers, response body, response time.
-
-Для error-case дополнительно прикладывается:
-
-- attachment `Ошибка API` с raw JSON ответа ошибки.
-
-Это позволяет расследовать падения без ручного включения debug-логов и без повторного прогона для сбора transport-контекста.

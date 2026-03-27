@@ -7,3 +7,9 @@ app/frontend/dist/
 app/frontend/*.tsbuildinfo
 tests/**/build/
 build/
+tests/frontend/artifacts/*
+!tests/frontend/artifacts/screenshots/.gitkeep
+!tests/frontend/artifacts/videos/.gitkeep
+!tests/frontend/artifacts/traces/.gitkeep
+!tests/frontend/artifacts/logs/.gitkeep
+tests/frontend/allure-results/

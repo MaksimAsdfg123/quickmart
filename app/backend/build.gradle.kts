@@ -56,8 +56,8 @@ kotlin {
 sourceSets {
     test {
         kotlin.srcDirs(
-            "../../tests/backend/support/kotlin",
-            "../../tests/backend/api/kotlin",
+            "../../tests/backend/shared/kotlin",
+            "../../tests/backend/suites/kotlin",
         )
         resources.srcDirs(
             "../../tests/backend/resources",

@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+﻿import { useMutation } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -28,7 +28,7 @@ export function LoginPage() {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search)
     if (searchParams.get('reason') === 'session-expired') {
-      showToast({ type: 'info', title: 'Сессия истекла', description: 'Войдите снова, чтобы продолжить' })
+      showToast({ type: 'info', title: 'РЎРµСЃСЃРёСЏ РёСЃС‚РµРєР»Р°', description: 'Р’РѕР№РґРёС‚Рµ СЃРЅРѕРІР°, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ' })
     }
   }, [location.search, showToast])
 
@@ -39,68 +39,71 @@ export function LoginPage() {
       const searchParams = new URLSearchParams(location.search)
       const fallbackFrom = searchParams.get('from')
       const from = (location.state as { from?: string } | null)?.from ?? fallbackFrom ?? '/'
-      showToast({ type: 'success', title: 'Вы вошли в аккаунт' })
+      showToast({ type: 'success', title: 'Р’С‹ РІРѕС€Р»Рё РІ Р°РєРєР°СѓРЅС‚' })
       navigate(from)
     },
     onError: (error) => {
-      showToast({ type: 'error', title: 'Ошибка входа', description: extractErrorMessage(error) })
+      showToast({ type: 'error', title: 'РћС€РёР±РєР° РІС…РѕРґР°', description: extractErrorMessage(error) })
     },
   })
 
   return (
-    <div className="page page--form">
+    <div className="page page--form" data-testid="login-page">
       <FormShell
-        title="Вход"
-        subtitle="Быстрый вход для оформления заказов и управления доставкой."
+        title="Р’С…РѕРґ"
+        subtitle="Р‘С‹СЃС‚СЂС‹Р№ РІС…РѕРґ РґР»СЏ РѕС„РѕСЂРјР»РµРЅРёСЏ Р·Р°РєР°Р·РѕРІ Рё СѓРїСЂР°РІР»РµРЅРёСЏ РґРѕСЃС‚Р°РІРєРѕР№."
         width="sm"
         variant="page"
         footer={
           <p className="muted">
-            Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
+            РќРµС‚ Р°РєРєР°СѓРЅС‚Р°? <Link to="/register" data-testid="login-go-register">Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ</Link>
           </p>
         }
       >
-        <div className="auth-meta">
-          <strong>Демо-доступ</strong>
+        <div className="auth-meta" data-testid="login-demo-credentials">
+          <strong>Р”РµРјРѕ-РґРѕСЃС‚СѓРї</strong>
           <span className="muted muted--compact">admin@quickmart.local / password</span>
           <span className="muted muted--compact">anna@example.com / password</span>
         </div>
 
-        <form onSubmit={handleSubmit((values) => mutation.mutate(values))}>
+        <form onSubmit={handleSubmit((values) => mutation.mutate(values))} data-testid="login-form">
           <div className="form-row">
             <label htmlFor="email">Email</label>
             <Input
               id="email"
+              data-testid="login-email"
               hasError={Boolean(errors.email)}
               placeholder="you@example.com"
               type="email"
               {...register('email', {
-                required: 'Введите email',
-                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Неверный формат email' },
+                required: 'Р’РІРµРґРёС‚Рµ email',
+                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'РќРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚ email' },
               })}
             />
             {errors.email ? <div className="error-text">{errors.email.message}</div> : null}
           </div>
 
           <div className="form-row">
-            <label htmlFor="password">Пароль</label>
+            <label htmlFor="password">РџР°СЂРѕР»СЊ</label>
             <Input
               id="password"
+              data-testid="login-password"
               hasError={Boolean(errors.password)}
-              placeholder="Ваш пароль"
+              placeholder="Р’Р°С€ РїР°СЂРѕР»СЊ"
               type="password"
-              {...register('password', { required: 'Введите пароль' })}
+              {...register('password', { required: 'Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ' })}
             />
             {errors.password ? <div className="error-text">{errors.password.message}</div> : null}
           </div>
 
-          {mutation.isError ? <div className="error">{extractErrorMessage(mutation.error)}</div> : null}
+          {mutation.isError ? <div className="error" data-testid="login-error">{extractErrorMessage(mutation.error)}</div> : null}
 
-          <Button type="submit" size="lg" block disabled={mutation.isPending}>
-            Войти
+          <Button type="submit" size="lg" block disabled={mutation.isPending} data-testid="login-submit">
+            Р’РѕР№С‚Рё
           </Button>
         </form>
       </FormShell>
     </div>
   )
 }
+
