@@ -21,7 +21,7 @@ project2/
 ### Docker Compose
 
 ```bash
-docker compose up --build -d
+docker compose --profile core up --build -d
 ```
 
 После запуска:
@@ -81,6 +81,7 @@ Backend:
 ## Документация
 
 - [Структура проекта](docs/PROJECT_STRUCTURE.md)
+- [CI в GitHub Actions](docs/ci.md)
 
 ## Важно
 
