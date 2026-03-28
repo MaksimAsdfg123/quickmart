@@ -25,6 +25,7 @@ class AuthApiTest : BaseApiTest() {
     @Story("Регистрация пользователя")
     @Severity(SeverityLevel.CRITICAL)
     @DisplayName("Регистрация создает пользователя CUSTOMER и возвращает JWT")
+    @Tag("smoke")
     fun shouldRegisterCustomerAndReturnJwt() {
         val request = AuthTestDataFactory.registrationWithWhitespaceAndUppercaseEmail()
 
@@ -108,6 +109,7 @@ class AuthApiTest : BaseApiTest() {
     @Story("Авторизация доступа")
     @Severity(SeverityLevel.CRITICAL)
     @DisplayName("Доступ к защищенному endpoint без токена возвращает 401")
+    @Tag("smoke")
     fun shouldRejectProtectedResourceWithoutToken() {
         val response = authScenario.callProtectedCartWithoutToken()
 
@@ -118,6 +120,7 @@ class AuthApiTest : BaseApiTest() {
     @Story("Авторизация доступа")
     @Severity(SeverityLevel.CRITICAL)
     @DisplayName("Покупатель не может получить доступ к административному endpoint")
+    @Tag("smoke")
     fun shouldRejectAdminEndpointForCustomerRole() {
         val customerLoginResponse = authScenario.loginCustomer(AuthTestDataFactory.seededCustomerLogin())
         val customerToken = AuthAssertions.assertLoginSucceeded(customerLoginResponse, "anna@example.com", "CUSTOMER").token
@@ -127,4 +130,3 @@ class AuthApiTest : BaseApiTest() {
         ErrorAssertions.assertAdminEndpointRejectedForCustomer(adminEndpointResponse)
     }
 }
-

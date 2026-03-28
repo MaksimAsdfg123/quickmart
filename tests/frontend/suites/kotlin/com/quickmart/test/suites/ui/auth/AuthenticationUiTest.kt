@@ -67,6 +67,7 @@ class AuthenticationUiTest : BaseUiSuite() {
     @Severity(SeverityLevel.BLOCKER)
     @Story("Успешный вход пользователя")
     @DisplayName("Успешная авторизация покупателя")
+    @Tag("smoke")
     fun shouldLoginCustomerSuccessfully() {
         sessionFixture.openAnonymousSession()
 
@@ -132,6 +133,7 @@ class AuthenticationUiTest : BaseUiSuite() {
     @Severity(SeverityLevel.CRITICAL)
     @Story("Неверные учетные данные")
     @DisplayName("Ошибка авторизации при неверном пароле")
+    @Tag("smoke")
     fun shouldShowErrorForInvalidCredentials() {
         sessionFixture.openAnonymousSession()
 

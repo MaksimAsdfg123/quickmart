@@ -86,6 +86,16 @@ tasks.register<Test>("uiTest") {
     }
 }
 
+tasks.register<Test>("uiSmokeTest") {
+    description = "Runs UI smoke suite (JUnit tag: smoke)."
+    group = "verification"
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    useJUnitPlatform {
+        includeTags("smoke")
+    }
+}
+
 tasks.register<Test>("uiTestHeaded") {
     description = "Runs UI test suite in headed mode (UI_HEADLESS=false)."
     group = "verification"

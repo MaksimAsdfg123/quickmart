@@ -14,10 +14,22 @@ tasks.register("apiTest") {
     dependsOn(":api-tests:apiTest")
 }
 
+tasks.register("apiSmokeTest") {
+    group = "verification"
+    description = "Runs API smoke suite."
+    dependsOn(":api-tests:apiSmokeTest")
+}
+
 tasks.register("uiTest") {
     group = "verification"
     description = "Runs UI automation suite."
     dependsOn(":ui-tests:uiTest")
+}
+
+tasks.register("uiSmokeTest") {
+    group = "verification"
+    description = "Runs UI smoke suite."
+    dependsOn(":ui-tests:uiSmokeTest")
 }
 
 tasks.register("uiTestHeaded") {

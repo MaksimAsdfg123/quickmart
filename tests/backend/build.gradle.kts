@@ -98,3 +98,14 @@ tasks.register<Test>("apiTest") {
         includeTags("api")
     }
 }
+
+tasks.register<Test>("apiSmokeTest") {
+    description = "Runs API smoke suite (JUnit tag: smoke)."
+    group = "verification"
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    systemProperty("junit.jupiter.execution.parallel.enabled", "false")
+    useJUnitPlatform {
+        includeTags("smoke")
+    }
+}
