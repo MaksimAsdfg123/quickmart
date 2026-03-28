@@ -28,7 +28,7 @@ export function LoginPage() {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search)
     if (searchParams.get('reason') === 'session-expired') {
-      showToast({ type: 'info', title: 'РЎРµСЃСЃРёСЏ РёСЃС‚РµРєР»Р°', description: 'Р’РѕР№РґРёС‚Рµ СЃРЅРѕРІР°, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ' })
+      showToast({ type: 'info', title: 'Сессия истекла', description: 'Войдите снова, чтобы продолжить' })
     }
   }, [location.search, showToast])
 
@@ -39,29 +39,29 @@ export function LoginPage() {
       const searchParams = new URLSearchParams(location.search)
       const fallbackFrom = searchParams.get('from')
       const from = (location.state as { from?: string } | null)?.from ?? fallbackFrom ?? '/'
-      showToast({ type: 'success', title: 'Р’С‹ РІРѕС€Р»Рё РІ Р°РєРєР°СѓРЅС‚' })
+      showToast({ type: 'success', title: 'Вы вошли в аккаунт' })
       navigate(from)
     },
     onError: (error) => {
-      showToast({ type: 'error', title: 'РћС€РёР±РєР° РІС…РѕРґР°', description: extractErrorMessage(error) })
+      showToast({ type: 'error', title: 'Ошибка входа', description: extractErrorMessage(error) })
     },
   })
 
   return (
     <div className="page page--form" data-testid="login-page">
       <FormShell
-        title="Р’С…РѕРґ"
-        subtitle="Р‘С‹СЃС‚СЂС‹Р№ РІС…РѕРґ РґР»СЏ РѕС„РѕСЂРјР»РµРЅРёСЏ Р·Р°РєР°Р·РѕРІ Рё СѓРїСЂР°РІР»РµРЅРёСЏ РґРѕСЃС‚Р°РІРєРѕР№."
+        title="Вход"
+        subtitle="Быстрый вход для оформления заказов и управления доставкой."
         width="sm"
         variant="page"
         footer={
           <p className="muted">
-            РќРµС‚ Р°РєРєР°СѓРЅС‚Р°? <Link to="/register" data-testid="login-go-register">Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ</Link>
+            Нет аккаунта? <Link to="/register" data-testid="login-go-register">Зарегистрироваться</Link>
           </p>
         }
       >
         <div className="auth-meta" data-testid="login-demo-credentials">
-          <strong>Р”РµРјРѕ-РґРѕСЃС‚СѓРї</strong>
+          <strong>Демо-доступ</strong>
           <span className="muted muted--compact">admin@quickmart.local / password</span>
           <span className="muted muted--compact">anna@example.com / password</span>
         </div>
@@ -76,22 +76,22 @@ export function LoginPage() {
               placeholder="you@example.com"
               type="email"
               {...register('email', {
-                required: 'Р’РІРµРґРёС‚Рµ email',
-                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'РќРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚ email' },
+                required: 'Введите email',
+                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Неверный формат email' },
               })}
             />
             {errors.email ? <div className="error-text">{errors.email.message}</div> : null}
           </div>
 
           <div className="form-row">
-            <label htmlFor="password">РџР°СЂРѕР»СЊ</label>
+            <label htmlFor="password">Пароль</label>
             <Input
               id="password"
               data-testid="login-password"
               hasError={Boolean(errors.password)}
-              placeholder="Р’Р°С€ РїР°СЂРѕР»СЊ"
+              placeholder="Ваш пароль"
               type="password"
-              {...register('password', { required: 'Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ' })}
+              {...register('password', { required: 'Введите пароль' })}
             />
             {errors.password ? <div className="error-text">{errors.password.message}</div> : null}
           </div>
@@ -99,7 +99,7 @@ export function LoginPage() {
           {mutation.isError ? <div className="error" data-testid="login-error">{extractErrorMessage(mutation.error)}</div> : null}
 
           <Button type="submit" size="lg" block disabled={mutation.isPending} data-testid="login-submit">
-            Р’РѕР№С‚Рё
+            Войти
           </Button>
         </form>
       </FormShell>

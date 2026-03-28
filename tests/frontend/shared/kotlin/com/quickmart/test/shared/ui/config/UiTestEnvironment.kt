@@ -23,6 +23,7 @@ object UiTestEnvironment {
 
     val headless: Boolean = readBoolean("UI_HEADLESS", "ui.headless", true)
     val browserName: String = readString("UI_BROWSER", "ui.browser", "chromium")
+    val slowMoMs: Double = readLong("UI_SLOW_MO_MS", "ui.slow-mo-ms", 0L).toDouble()
 
     val actionTimeoutMs: Double = readLong("UI_ACTION_TIMEOUT_MS", "ui.action-timeout-ms", 10_000L).toDouble()
     val navigationTimeoutMs: Double = readLong("UI_NAVIGATION_TIMEOUT_MS", "ui.navigation-timeout-ms", 25_000L).toDouble()

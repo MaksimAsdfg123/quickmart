@@ -39,30 +39,11 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("io.rest-assured:rest-assured:5.5.1")
-    testImplementation("io.rest-assured:kotlin-extensions:5.5.1")
-    testImplementation("io.rest-assured:json-path:5.5.1")
-    testImplementation("io.qameta.allure:allure-junit5:2.29.1")
-    testImplementation("io.qameta.allure:allure-rest-assured:2.29.1")
-    testImplementation("org.assertj:assertj-core:3.26.3")
 }
 
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
-}
-
-sourceSets {
-    test {
-        kotlin.srcDirs(
-            "../../tests/backend/shared/kotlin",
-            "../../tests/backend/suites/kotlin",
-        )
-        resources.srcDirs(
-            "../../tests/backend/resources",
-            "../../tests/config",
-        )
     }
 }
 
@@ -72,15 +53,5 @@ tasks.withType<Test>().configureEach {
         events("passed", "skipped", "failed")
         showExceptions = true
         showStackTraces = true
-    }
-}
-
-tasks.register<Test>("apiTest") {
-    description = "Runs API automation suite (JUnit tag: api)."
-    group = "verification"
-    testClassesDirs = sourceSets.test.get().output.classesDirs
-    classpath = sourceSets.test.get().runtimeClasspath
-    useJUnitPlatform {
-        includeTags("api")
     }
 }

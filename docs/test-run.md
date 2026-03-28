@@ -1,4 +1,4 @@
-# Запуск backend API-тестов
+# Запуск backend API-тестов (`:api-tests`)
 
 ## Предусловия
 - Backend запущен и доступен по `API_BASE_URL` (по умолчанию `http://127.0.0.1:8080`).
@@ -27,37 +27,43 @@
 
 ### Компиляция тестов
 ```bash
-.\gradlew.bat :backend:compileTestKotlin
+.\gradlew.bat :api-tests:compileTestKotlin
 ```
 
 ### Только API-suite
 ```bash
-.\gradlew.bat :backend:apiTest
+.\gradlew.bat :api-tests:apiTest
 ```
 
 ### Полный backend test layer
 ```bash
-.\gradlew.bat :backend:test
+.\gradlew.bat :api-tests:test
+```
+
+### Запуск через root shortcut
+```bash
+.\gradlew.bat apiTest
 ```
 
 ## Parallel execution
 - Настройки JUnit 5 лежат в `tests/backend/resources/junit-platform.properties`.
 - Включен concurrent запуск классов и методов.
 - Для безопасного параллелизма тесты обязаны использовать независимые тестовые данные.
+- Task `:api-tests:apiTest` overrides JUnit parallel mode to `false` so HTTP traces are attached to each individual test case in `Test Results`.
 
 ## Allure
 - Конфиг: `tests/backend/resources/allure.properties`
-- Результаты: `app/backend/build/allure-results`
+- Результаты: `tests/backend/build/allure-results`
 
 Пример генерации отчета:
 ```bash
-allure generate app/backend/build/allure-results --clean -o app/backend/build/allure-report
-allure open app/backend/build/allure-report
+allure generate tests/backend/build/allure-results --clean -o tests/backend/build/allure-report
+allure open tests/backend/build/allure-report
 ```
 
 ## Как добавить новый API-тест
 1. Добавить/обновить client в `tests/backend/shared/kotlin/com/quickmart/test/shared/clients`.
 2. Добавить доменный сценарий и assertions в `tests/backend/shared/kotlin/com/quickmart/test/shared/<domain>/...`.
 3. Добавить тест в `tests/backend/suites/kotlin/com/quickmart/test/suites/api/<domain>`.
-4. Запустить `:backend:apiTest`.
+4. Запустить `:api-tests:apiTest`.
 

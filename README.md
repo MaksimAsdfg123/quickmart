@@ -9,7 +9,7 @@ project2/
   app/
     backend/    Kotlin + Spring Boot API
     frontend/   React + TypeScript SPA
-  tests/        заготовка под будущие автотесты
+  tests/        API и UI автотесты (Kotlin)
   docs/         краткая документация
   build.gradle.kts
   settings.gradle.kts
@@ -85,5 +85,5 @@ Backend:
 ## Важно
 
 - runtime-код лежит только в `app/backend` и `app/frontend`
-- `tests/` сейчас содержит только пустую структуру каталогов под будущую автоматизацию
-- корневой `Gradle` остается единственным entrypoint для backend-задач
+- тестовые модули: `:api-tests` (`tests/backend`) и `:ui-tests` (`tests/frontend`)
+- корневой `Gradle` остается entrypoint для backend и тестовых задач (`apiTest`, `uiTest`)

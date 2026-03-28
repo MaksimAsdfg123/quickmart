@@ -8,7 +8,10 @@ import io.restassured.specification.FilterableRequestSpecification
 import io.restassured.specification.FilterableResponseSpecification
 import java.util.concurrent.TimeUnit
 
-class AllureHttpLoggingFilter : Filter {
+class AllureHttpLoggingFilter(
+    private val printToConsole: Boolean =
+        System.getProperty("api.http.trace.console", "true").toBoolean(),
+) : Filter {
     override fun filter(
         requestSpec: FilterableRequestSpecification,
         responseSpec: FilterableResponseSpecification,
@@ -17,17 +20,27 @@ class AllureHttpLoggingFilter : Filter {
         val startedAt = System.nanoTime()
         val response = filterContext.next(requestSpec, responseSpec)
         val durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt)
+        val requestTrace = buildRequestAttachment(requestSpec)
+        val responseTrace = buildResponseAttachment(response, durationMs)
+        val requestTitle = "HTTP Request: ${requestSpec.method} ${requestSpec.uri}"
+        val responseTitle = "HTTP Response: ${response.statusCode()} ${requestSpec.method} ${requestSpec.uri}"
 
         Allure.addAttachment(
-            "HTTP Request: ${requestSpec.method} ${requestSpec.uri}",
+            requestTitle,
             "text/plain",
-            buildRequestAttachment(requestSpec),
+            requestTrace,
         )
         Allure.addAttachment(
-            "HTTP Response: ${response.statusCode()} ${requestSpec.method} ${requestSpec.uri}",
+            responseTitle,
             "text/plain",
-            buildResponseAttachment(response, durationMs),
+            responseTrace,
         )
+        if (printToConsole) {
+            println("[api-tests] $requestTitle")
+            println(requestTrace)
+            println("[api-tests] $responseTitle")
+            println(responseTrace)
+        }
 
         return response
     }
@@ -78,4 +91,3 @@ class AllureHttpLoggingFilter : Filter {
             appendLine(response.body.asPrettyString())
         }
 }
-

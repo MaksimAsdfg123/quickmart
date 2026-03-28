@@ -52,7 +52,8 @@ abstract class BaseUiSuite {
 
             return browserType.launch(
                 BrowserType.LaunchOptions()
-                    .setHeadless(UiTestEnvironment.headless),
+                    .setHeadless(UiTestEnvironment.headless)
+                    .setSlowMo(UiTestEnvironment.slowMoMs),
             )
         }
     }

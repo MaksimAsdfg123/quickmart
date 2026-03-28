@@ -86,6 +86,40 @@ tasks.register<Test>("uiTest") {
     }
 }
 
+tasks.register<Test>("uiTestHeaded") {
+    description = "Runs UI test suite in headed mode (UI_HEADLESS=false)."
+    group = "verification"
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    environment("UI_HEADLESS", "false")
+    useJUnitPlatform {
+        includeTags("ui")
+    }
+}
+
+tasks.register<Test>("uiTestDebug") {
+    description = "Runs UI test suite in headed debug mode with Playwright API trace in console."
+    group = "verification"
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    environment("UI_HEADLESS", "false")
+    environment("UI_SLOW_MO_MS", providers.environmentVariable("UI_SLOW_MO_MS").orNull ?: "250")
+    environment("DEBUG", providers.environmentVariable("DEBUG").orNull ?: "pw:api")
+    testLogging {
+        events(
+            org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
+        )
+        showStandardStreams = true
+    }
+    useJUnitPlatform {
+        includeTags("ui")
+    }
+}
+
 tasks.register<JavaExec>("installUiBrowsers") {
     description = "Installs Playwright browsers required by UI tests."
     group = "verification"

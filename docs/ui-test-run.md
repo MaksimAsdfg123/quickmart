@@ -8,6 +8,7 @@
 ## Конфигурация
 Общий файл: `tests/config/test-environment.properties`.
 UI-модуль читает значения в порядке: `env vars -> tests/config/test-environment.properties -> fallback в коде`.
+Модуль UI-тестов: `:ui-tests` (`tests/frontend`).
 
 Ключи:
 - `UI_BASE_URL`
@@ -16,26 +17,44 @@ UI-модуль читает значения в порядке: `env vars -> te
 - `E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD`
 - `UI_HEADLESS`
 - `UI_BROWSER`
+- `UI_SLOW_MO_MS`
+- `DEBUG`
 
 ## Команды
 Установка браузеров Playwright:
 ```bash
-./gradlew installUiBrowsers
+.\gradlew.bat installUiBrowsers
 ```
 
 Запуск UI suite:
 ```bash
-./gradlew uiTest
+.\gradlew.bat uiTest
 ```
 
 Запуск напрямую модулем:
 ```bash
-./gradlew :ui-tests:uiTest
+.\gradlew.bat :ui-tests:uiTest
 ```
 
 Headed запуск:
 ```bash
-UI_HEADLESS=false ./gradlew :ui-tests:uiTest
+.\gradlew.bat uiTestHeaded
+```
+
+Headed запуск напрямую модулем:
+```bash
+.\gradlew.bat :ui-tests:uiTestHeaded
+```
+
+Debug запуск одного UI-теста (headed + полный Playwright API trace в консоли):
+```bash
+.\gradlew.bat :ui-tests:uiTestDebug --tests com.quickmart.test.suites.ui.auth.AuthenticationUiTest.shouldLoginCustomerSuccessfully
+```
+
+Сделать медленнее/быстрее действия в debug-режиме:
+```bash
+$env:UI_SLOW_MO_MS="500"
+.\gradlew.bat :ui-tests:uiTestDebug --tests com.quickmart.test.suites.ui.auth.AuthenticationUiTest.shouldLoginCustomerSuccessfully
 ```
 
 CI-профиль (через переменную CI=true):

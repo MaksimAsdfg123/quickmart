@@ -12,6 +12,11 @@ project2/
   docker-compose.yml
 ```
 
+Gradle modules:
+- `:backend` -> `app/backend`
+- `:api-tests` -> `tests/backend`
+- `:ui-tests` -> `tests/frontend`
+
 ## app
 
 `app` содержит весь runtime-код проекта.
@@ -47,24 +52,24 @@ React frontend.
 
 ## tests
 
-`tests` — пока только каркас под будущие автотесты.
+`tests` содержит отдельные модули API и UI автотестов.
 
 ### `tests/backend`
 
-- `api` — будущие API/contract тесты
-- `integration` — будущие интеграционные тесты
-- `unit` — будущие unit-тесты
-- `support` — будущий общий test support
+- `build.gradle.kts` — сборка модуля `:api-tests`
+- `suites` — сценарные API suite-тесты
+- `shared` — переиспользуемая тестовая инфраструктура и хелперы
+- `resources` — backend test resources (`allure.properties`, `application-test.yml`, `junit-platform.properties`)
 
 ### `tests/frontend`
 
-- `e2e` — будущие UI end-to-end сценарии
-- `fixtures` — будущие фикстуры
-- `pages` — будущие page objects
-- `support` — будущие helper-утилиты
+- `build.gradle.kts` — сборка модуля `:ui-tests`
+- `suites` — UI suite-тесты
+- `shared` — page objects, flows, fixtures, listeners и helpers
+- `resources` — UI test resources (`allure.properties`, `junit-platform.properties`, `logback-test.xml`)
 
 ## Структурные правила
 
 - новый runtime-код добавляется только в `app/backend` или `app/frontend`
 - `tests/` не должен смешиваться с runtime-кодом
-- корневой `Gradle` остается единым entrypoint для backend
+- корневой `Gradle` остается единым entrypoint для backend и тестовых задач

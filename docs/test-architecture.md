@@ -1,7 +1,7 @@
 # Архитектура backend API-тестов (Suite + Shared)
 
 ## Цель
-Backend test layer организован по принципу:
+Модуль `:api-tests` (`tests/backend`) организован по принципу:
 - `suites` — только сценарные тесты;
 - `shared` — только переиспользуемая инфраструктура и доменные хелперы.
 
@@ -14,6 +14,7 @@ tests/
   config/
     test-environment.properties
   backend/
+    build.gradle.kts
     suites/
       kotlin/com/quickmart/test/suites/
         api/
@@ -45,6 +46,8 @@ tests/
       allure.properties
       junit-platform.properties
 ```
+
+Запуск слоя выполняется через `:api-tests:*` (например, `:api-tests:apiTest`).
 
 ## Роли слоев
 - `suites`: короткие тесты уровня бизнес-сценария.
