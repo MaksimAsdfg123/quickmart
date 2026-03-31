@@ -8,9 +8,11 @@ import com.quickmart.config.NOT_FOUND_RESPONSE_REF
 import com.quickmart.config.TAG_ADMIN_ORDERS
 import com.quickmart.config.UNAUTHORIZED_ACCESS_RESPONSE_REF
 import com.quickmart.dto.PageResponse
+import com.quickmart.dto.admin.OrderEventAuditResponse
 import com.quickmart.dto.order.OrderResponse
 import com.quickmart.dto.order.OrderSummaryResponse
 import com.quickmart.dto.order.UpdateOrderStatusRequest
+import com.quickmart.service.OrderEventAuditService
 import com.quickmart.service.OrderService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -42,6 +44,7 @@ import java.util.UUID
 @SecurityRequirement(name = BEARER_AUTH_SCHEME)
 class AdminOrderController(
     private val orderService: OrderService,
+    private val orderEventAuditService: OrderEventAuditService,
 ) {
     @GetMapping
     @Operation(
@@ -86,6 +89,25 @@ class AdminOrderController(
         @Parameter(description = "Идентифицирует ресурс заказа. Формат: UUID.", example = "80000000-0000-0000-0000-000000000001")
         @PathVariable id: UUID,
     ): ResponseEntity<OrderResponse> = ResponseEntity.ok(orderService.getOrderDetails(id))
+
+    @GetMapping("/{id}/events")
+    @Operation(
+        summary = "Получить историю Kafka-событий заказа",
+        description = "Назначение: Возвращает сохраненную историю доменных Kafka-событий по заказу, идентифицированному переданным идентификатором.\nАвторизация: Bearer JWT с ролью `ADMIN`.\nОграничения: Заказ должен существовать. История может быть пустой, если Kafka-интеграция выключена или события по заказу еще не обработаны consumer-ом.\nРезультат: Возвращает коллекцию событий заказа в хронологическом порядке.",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "История событий заказа возвращена.", content = [Content(schema = Schema(implementation = OrderEventAuditResponse::class))]),
+            ApiResponse(responseCode = "401", ref = UNAUTHORIZED_ACCESS_RESPONSE_REF),
+            ApiResponse(responseCode = "403", ref = FORBIDDEN_RESPONSE_REF),
+            ApiResponse(responseCode = "404", ref = NOT_FOUND_RESPONSE_REF),
+            ApiResponse(responseCode = "500", ref = INTERNAL_SERVER_ERROR_RESPONSE_REF),
+        ],
+    )
+    fun orderEvents(
+        @Parameter(description = "Идентифицирует ресурс заказа. Формат: UUID.", example = "80000000-0000-0000-0000-000000000001")
+        @PathVariable id: UUID,
+    ): ResponseEntity<List<OrderEventAuditResponse>> = ResponseEntity.ok(orderEventAuditService.getByOrderId(id))
 
     @PutMapping("/{id}/status")
     @Operation(

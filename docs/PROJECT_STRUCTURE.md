@@ -30,7 +30,9 @@ Spring Boot backend.
 - `src/main/kotlin/com/quickmart/controller/admin` — административные endpoints
 - `src/main/kotlin/com/quickmart/domain` — сущности и enum-ы домена
 - `src/main/kotlin/com/quickmart/dto` — request/response DTO
+- `src/main/kotlin/com/quickmart/events` — доменные integration events заказа и event envelope
 - `src/main/kotlin/com/quickmart/exception` — обработка ошибок
+- `src/main/kotlin/com/quickmart/kafka` — Kafka producer/consumer и transport-layer интеграция
 - `src/main/kotlin/com/quickmart/mapper` — преобразование entity ↔ DTO
 - `src/main/kotlin/com/quickmart/repository` — доступ к данным
 - `src/main/kotlin/com/quickmart/security` — JWT и авторизация
@@ -73,3 +75,4 @@ React frontend.
 - новый runtime-код добавляется только в `app/backend` или `app/frontend`
 - `tests/` не должен смешиваться с runtime-кодом
 - корневой `Gradle` остается единым entrypoint для backend и тестовых задач
+- Kafka/event-driven документация вынесена в `docs/KAFKA_INTEGRATION.md`

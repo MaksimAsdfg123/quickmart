@@ -8,6 +8,7 @@ import com.quickmart.domain.enums.PaymentMethod
 import com.quickmart.domain.enums.PaymentStatus
 import com.quickmart.dto.order.CheckoutRequest
 import com.quickmart.dto.order.OrderResponse
+import com.quickmart.events.OrderEventPublisher
 import com.quickmart.exception.BusinessException
 import com.quickmart.mapper.OrderMapper
 import com.quickmart.repository.OrderRepository
@@ -25,6 +26,7 @@ class CheckoutService(
     private val inventoryService: InventoryService,
     private val orderRepository: OrderRepository,
     private val orderMapper: OrderMapper,
+    private val orderEventPublisher: OrderEventPublisher,
 ) {
     private val freeDeliveryThreshold = BigDecimal("1500.00")
     private val baseDeliveryFee = BigDecimal("149.00")
@@ -109,6 +111,7 @@ class CheckoutService(
         }
 
         cart.items.clear()
+        orderEventPublisher.publishCreated(savedOrder)
 
         return orderMapper.toResponse(savedOrder)
     }

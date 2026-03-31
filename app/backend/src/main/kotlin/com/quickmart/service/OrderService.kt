@@ -7,6 +7,7 @@ import com.quickmart.domain.enums.PaymentStatus
 import com.quickmart.dto.PageResponse
 import com.quickmart.dto.order.OrderResponse
 import com.quickmart.dto.order.OrderSummaryResponse
+import com.quickmart.events.OrderEventPublisher
 import com.quickmart.exception.BusinessException
 import com.quickmart.exception.NotFoundException
 import com.quickmart.mapper.OrderMapper
@@ -23,6 +24,7 @@ class OrderService(
     private val orderMapper: OrderMapper,
     private val orderStatusTransitionService: OrderStatusTransitionService,
     private val inventoryService: InventoryService,
+    private val orderEventPublisher: OrderEventPublisher,
 ) {
     @Transactional(readOnly = true)
     fun getMyOrders(
@@ -59,10 +61,16 @@ class OrderService(
             throw NotFoundException("Заказ не найден")
         }
 
+        val previousStatus = order.status
         orderStatusTransitionService.validateCustomerCancellation(order.status)
         cancelOrder(order)
 
-        return orderMapper.toResponse(orderRepository.save(order))
+        val savedOrder = orderRepository.save(order)
+        if (savedOrder.status != previousStatus) {
+            orderEventPublisher.publishCancelled(savedOrder, previousStatus)
+        }
+
+        return orderMapper.toResponse(savedOrder)
     }
 
     @Transactional(readOnly = true)
@@ -92,6 +100,7 @@ class OrderService(
         targetStatus: OrderStatus,
     ): OrderResponse {
         val order = orderRepository.findById(orderId).orElseThrow { NotFoundException("Заказ не найден") }
+        val previousStatus = order.status
 
         orderStatusTransitionService.validateTransition(order.status, targetStatus)
 
@@ -104,7 +113,16 @@ class OrderService(
             }
         }
 
-        return orderMapper.toResponse(orderRepository.save(order))
+        val savedOrder = orderRepository.save(order)
+        if (savedOrder.status != previousStatus) {
+            if (savedOrder.status == OrderStatus.CANCELLED) {
+                orderEventPublisher.publishCancelled(savedOrder, previousStatus)
+            } else {
+                orderEventPublisher.publishStatusChanged(savedOrder, previousStatus)
+            }
+        }
+
+        return orderMapper.toResponse(savedOrder)
     }
 
     private fun cancelOrder(order: Order) {

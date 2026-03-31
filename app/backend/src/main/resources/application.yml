@@ -19,6 +19,17 @@ spring:
     enabled: true
   jackson:
     time-zone: UTC
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+    listener:
+      missing-topics-fatal: false
 
 server:
   port: ${SERVER_PORT:8080}
@@ -27,6 +38,10 @@ app:
   jwt:
     secret: ${JWT_SECRET:very-secret-jwt-key-change-me-in-production-please}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:86400}
+  kafka:
+    enabled: ${APP_KAFKA_ENABLED:false}
+    topic: ${APP_KAFKA_TOPIC:quickmart.order-events}
+    consumer-group: ${APP_KAFKA_CONSUMER_GROUP:quickmart-order-audit}
 
 logging:
   level:
