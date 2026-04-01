@@ -1,5 +1,6 @@
-﻿package com.quickmart.service
+package com.quickmart.service
 
+import com.quickmart.cache.CatalogReadCacheInvalidationPublisher
 import com.quickmart.dto.admin.InventoryStockResponse
 import com.quickmart.exception.BusinessException
 import com.quickmart.exception.NotFoundException
@@ -16,6 +17,7 @@ class InventoryService(
     private val inventoryStockRepository: InventoryStockRepository,
     private val productService: ProductService,
     private val inventoryMapper: InventoryMapper,
+    private val catalogReadCacheInvalidationPublisher: CatalogReadCacheInvalidationPublisher,
 ) {
     fun getAll(
         page: Int,
@@ -59,7 +61,8 @@ class InventoryService(
         }
 
         stock.availableQuantity -= quantity
-        inventoryStockRepository.save(stock)
+        val saved = inventoryStockRepository.save(stock)
+        catalogReadCacheInvalidationPublisher.productChanged(saved.product.id!!)
     }
 
     @Transactional
@@ -73,7 +76,8 @@ class InventoryService(
                 .orElseThrow { NotFoundException("Остаток по товару не найден") }
 
         stock.availableQuantity += quantity
-        inventoryStockRepository.save(stock)
+        val saved = inventoryStockRepository.save(stock)
+        catalogReadCacheInvalidationPublisher.productChanged(saved.product.id!!)
     }
 
     @Transactional
@@ -94,6 +98,8 @@ class InventoryService(
                 }
 
         stock.availableQuantity = newQuantity
-        return inventoryMapper.toResponse(inventoryStockRepository.save(stock))
+        val saved = inventoryStockRepository.save(stock)
+        catalogReadCacheInvalidationPublisher.productChanged(saved.product.id!!)
+        return inventoryMapper.toResponse(saved)
     }
 }

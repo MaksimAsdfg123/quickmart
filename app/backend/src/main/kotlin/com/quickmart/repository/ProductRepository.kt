@@ -23,6 +23,7 @@ interface ProductRepository : JpaRepository<Product, UUID> {
           and (:searchPattern is null or lower(p.name) like :searchPattern)
         """,
     )
+    @EntityGraph(attributePaths = ["category"])
     fun findCatalogPage(
         @Param("categoryId") categoryId: UUID?,
         @Param("searchPattern") searchPattern: String?,

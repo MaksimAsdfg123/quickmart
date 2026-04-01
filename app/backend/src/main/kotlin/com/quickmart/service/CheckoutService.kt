@@ -24,6 +24,7 @@ class CheckoutService(
     private val deliverySlotService: DeliverySlotService,
     private val promoCodeService: PromoCodeService,
     private val inventoryService: InventoryService,
+    private val paymentProcessingService: PaymentProcessingService,
     private val orderRepository: OrderRepository,
     private val orderMapper: OrderMapper,
     private val orderEventPublisher: OrderEventPublisher,
@@ -87,20 +88,21 @@ class CheckoutService(
             order.items.add(orderItem)
         }
 
+        val paymentResolution =
+            paymentProcessingService.resolvePayment(
+                userId = address.user.id!!,
+                method = request.paymentMethod,
+                amount = total,
+            )
+
         val payment =
             Payment().apply {
                 this.order = order
                 method = request.paymentMethod
-                status = resolvePaymentStatus(request.paymentMethod, total)
+                status = paymentResolution.status
                 amount = total
-                if (request.paymentMethod == PaymentMethod.MOCK_ONLINE) {
-                    externalReference = "MOCK-${System.currentTimeMillis()}"
-                }
+                externalReference = paymentResolution.externalReference
             }
-
-        if (payment.status == PaymentStatus.FAILED) {
-            throw BusinessException("Оплата не прошла")
-        }
 
         order.payment = payment
 
@@ -115,16 +117,4 @@ class CheckoutService(
 
         return orderMapper.toResponse(savedOrder)
     }
-
-    private fun resolvePaymentStatus(
-        method: PaymentMethod,
-        total: BigDecimal,
-    ): PaymentStatus =
-        when (method) {
-            PaymentMethod.CASH -> PaymentStatus.PENDING
-            PaymentMethod.CARD -> PaymentStatus.PAID
-            PaymentMethod.MOCK_ONLINE -> {
-                if (total > BigDecimal("50000")) PaymentStatus.FAILED else PaymentStatus.PAID
-            }
-        }
 }

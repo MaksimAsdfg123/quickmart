@@ -32,6 +32,9 @@ services:
       DB_PASSWORD: quickmart
       APP_KAFKA_ENABLED: "${APP_KAFKA_ENABLED:-false}"
       KAFKA_BOOTSTRAP_SERVERS: "${KAFKA_BOOTSTRAP_SERVERS:-kafka:19092}"
+      APP_MOCK_ONLINE_PAYMENT_ENABLED: "${APP_MOCK_ONLINE_PAYMENT_ENABLED:-false}"
+      APP_MOCK_ONLINE_PAYMENT_BASE_URL: "${APP_MOCK_ONLINE_PAYMENT_BASE_URL:-http://wiremock:8080}"
+      APP_MOCK_ONLINE_PAYMENT_API_KEY: "${APP_MOCK_ONLINE_PAYMENT_API_KEY:-quickmart-local-sandbox-key}"
       JWT_SECRET: very-secret-jwt-key-change-me-in-production-please
       JWT_EXPIRATION_SECONDS: 86400
       SERVER_PORT: 8080

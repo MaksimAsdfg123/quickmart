@@ -1,5 +1,7 @@
-﻿package com.quickmart.service
+package com.quickmart.service
 
+import com.quickmart.cache.CacheNames
+import com.quickmart.cache.CatalogReadCacheInvalidationPublisher
 import com.quickmart.domain.entity.Category
 import com.quickmart.dto.category.CategoryRequest
 import com.quickmart.dto.category.CategoryResponse
@@ -7,6 +9,7 @@ import com.quickmart.exception.ConflictException
 import com.quickmart.exception.NotFoundException
 import com.quickmart.mapper.CategoryMapper
 import com.quickmart.repository.CategoryRepository
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -15,7 +18,14 @@ import java.util.UUID
 class CategoryService(
     private val categoryRepository: CategoryRepository,
     private val categoryMapper: CategoryMapper,
+    private val catalogReadCacheInvalidationPublisher: CatalogReadCacheInvalidationPublisher,
 ) {
+    @Transactional(readOnly = true)
+    @Cacheable(
+        cacheNames = [CacheNames.PUBLIC_CATEGORIES],
+        key = "@cacheKeyFactory.singleton('public-categories')",
+        sync = true,
+    )
     fun getPublicCategories(): List<CategoryResponse> =
         categoryRepository
             .findAllByActiveTrueOrderByNameAsc()
@@ -39,7 +49,9 @@ class CategoryService(
                 description = request.description?.trim()
                 active = request.active
             }
-        return categoryMapper.toResponse(categoryRepository.save(category))
+        val saved = categoryRepository.save(category)
+        catalogReadCacheInvalidationPublisher.categoryChanged()
+        return categoryMapper.toResponse(saved)
     }
 
     @Transactional
@@ -59,7 +71,9 @@ class CategoryService(
         category.name = request.name.trim()
         category.description = request.description?.trim()
         category.active = request.active
-        return categoryMapper.toResponse(categoryRepository.save(category))
+        val saved = categoryRepository.save(category)
+        catalogReadCacheInvalidationPublisher.categoryChanged()
+        return categoryMapper.toResponse(saved)
     }
 
     @Transactional
@@ -72,7 +86,9 @@ class CategoryService(
                 .findById(id)
                 .orElseThrow { NotFoundException("Категория не найдена") }
         category.active = active
-        return categoryMapper.toResponse(categoryRepository.save(category))
+        val saved = categoryRepository.save(category)
+        catalogReadCacheInvalidationPublisher.categoryChanged()
+        return categoryMapper.toResponse(saved)
     }
 
     @Transactional
@@ -83,6 +99,7 @@ class CategoryService(
                 .orElseThrow { NotFoundException("Категория не найдена") }
         category.active = false
         categoryRepository.save(category)
+        catalogReadCacheInvalidationPublisher.categoryChanged()
     }
 
     fun getByIdOrThrow(id: UUID): Category =

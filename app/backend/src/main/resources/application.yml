@@ -38,6 +38,24 @@ app:
   jwt:
     secret: ${JWT_SECRET:very-secret-jwt-key-change-me-in-production-please}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:86400}
+  cache:
+    enabled: ${APP_CACHE_ENABLED:true}
+    public-catalog-pages:
+      ttl: ${APP_CACHE_PUBLIC_CATALOG_TTL:30s}
+      maximum-size: ${APP_CACHE_PUBLIC_CATALOG_MAX_SIZE:256}
+    public-product-cards:
+      ttl: ${APP_CACHE_PUBLIC_PRODUCT_TTL:30s}
+      maximum-size: ${APP_CACHE_PUBLIC_PRODUCT_MAX_SIZE:1024}
+    public-categories:
+      ttl: ${APP_CACHE_PUBLIC_CATEGORIES_TTL:30m}
+      maximum-size: ${APP_CACHE_PUBLIC_CATEGORIES_MAX_SIZE:64}
+  integrations:
+    mock-online-payment:
+      enabled: ${APP_MOCK_ONLINE_PAYMENT_ENABLED:false}
+      base-url: ${APP_MOCK_ONLINE_PAYMENT_BASE_URL:http://localhost:8089}
+      api-key: ${APP_MOCK_ONLINE_PAYMENT_API_KEY:quickmart-local-sandbox-key}
+      connect-timeout: ${APP_MOCK_ONLINE_PAYMENT_CONNECT_TIMEOUT:500ms}
+      read-timeout: ${APP_MOCK_ONLINE_PAYMENT_READ_TIMEOUT:2s}
   kafka:
     enabled: ${APP_KAFKA_ENABLED:false}
     topic: ${APP_KAFKA_TOPIC:quickmart.order-events}
