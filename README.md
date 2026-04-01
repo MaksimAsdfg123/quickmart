@@ -177,6 +177,7 @@ Frontend по умолчанию обращается к `http://localhost:8080`
 
 ## Documentation Map
 
+- `AGENTS.md` - repo-level instruction entrypoint; для любых запросов на создание или изменение автотестов сначала читать этот файл и затем `docs/testing/test-authoring-rules.md`.
 - [docs/architecture/system-overview.md](docs/architecture/system-overview.md) - архитектура системы, границы модулей и ключевые технические решения.
 - [docs/features/functional-overview.md](docs/features/functional-overview.md) - реализованные пользовательские и административные возможности, а также backend-only API capabilities.
 - [docs/integrations/cache.md](docs/integrations/cache.md) - выбранная cache strategy, схема ключей, invalidation model и текущие trade-offs.
@@ -186,6 +187,7 @@ Frontend по умолчанию обращается к `http://localhost:8080`
 - [docs/operations/configuration.md](docs/operations/configuration.md) - переменные окружения, compose overrides и конфигурация automation.
 - [docs/operations/ci.md](docs/operations/ci.md) - GitHub Actions workflow map, CI-контракт и набор публикуемых артефактов.
 - [docs/testing/test-strategy.md](docs/testing/test-strategy.md) - обзор тестовых слоев, coverage profile и точек входа.
+- [docs/testing/test-authoring-rules.md](docs/testing/test-authoring-rules.md) - canonical rules для написания новых автотестов во всех test-модулях проекта.
 - [docs/testing/backend-api-tests.md](docs/testing/backend-api-tests.md) - устройство `:api-tests`, black-box API suites и backend component suites.
 - [docs/testing/ui-tests.md](docs/testing/ui-tests.md) - устройство `:ui-tests`, Playwright tasks, diagnostics и текущий scope UI automation.
 - [docs/testing/manual-api-checklist.md](docs/testing/manual-api-checklist.md) - ручная smoke-памятка по backend API и seed-данным.

@@ -4,6 +4,8 @@
 
 Модуль `:ui-tests` (`tests/frontend`) содержит Playwright-based UI automation на Kotlin. Текущий scope этого слоя - auth/access scenarios: логин, регистрация, logout, duplicate registration и поведение protected routes.
 
+Базовый стандарт для всех новых UI автотестов зафиксирован в [test-authoring-rules.md](test-authoring-rules.md). Текущий документ описывает только устройство и scope модуля `:ui-tests`.
+
 ## Структура модуля
 
 ```text

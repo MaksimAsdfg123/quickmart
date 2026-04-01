@@ -9,6 +9,8 @@
 
 Это принципиально важно для навигации по проекту: не все задачи модуля `:api-tests` требуют заранее поднятый Docker stack или внешний backend.
 
+Базовый стандарт для всех новых backend API и backend component tests зафиксирован в [test-authoring-rules.md](test-authoring-rules.md). Текущий документ описывает только устройство и scope модуля `:api-tests`.
+
 ## Структура модуля
 
 ```text
