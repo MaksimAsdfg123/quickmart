@@ -10,13 +10,16 @@
 
 Документ предназначен одновременно для инженеров и для агентных запросов. Его задача — обеспечить единый стиль, предсказуемую структуру тестов и отсутствие ad-hoc автоматизации, не встроенной в архитектуру проекта.
 
+При review test-related PR этот документ нужно использовать вместе с `docs/engineering/code-review-principles.md`: текущий файл задает обязательные правила тестовой архитектуры, а engineering guide помогает оценивать качество абстракций, границы ответственности и уместность переиспользования.
+
 ## 2. Иерархия инструкций
 
 Приоритет правил следующий:
 
 1. `AGENTS.md`
 2. `docs/testing/test-authoring-rules.md`
-3. layer-specific документы:
+3. `docs/engineering/code-review-principles.md` — review-oriented guide по SOLID, DRY, KISS, SoC и другим инженерным принципам, применяемым к runtime- и test-коду
+4. layer-specific документы:
    - `docs/testing/test-strategy.md`
    - `docs/testing/backend-api-tests.md`
    - `docs/testing/ui-tests.md`
@@ -253,6 +256,7 @@ Performance-layer служит только для нагрузочных и smo
 ## 14. Что читать дальше
 
 - `docs/testing/test-strategy.md` — когда выбирать конкретный слой тестирования
+- `docs/engineering/code-review-principles.md` — как оценивать SOLID, DRY, KISS, SoC, композицию и error handling при review test-related PR
 - `docs/testing/backend-api-tests.md` — устройство backend API/component automation
 - `docs/testing/ui-tests.md` — устройство UI automation
 - профильные integration docs в `docs/integrations/*` — правила конкретных интеграционных контуров

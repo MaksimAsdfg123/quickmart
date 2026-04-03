@@ -66,6 +66,7 @@ project2/
     config/         shared test-environment.properties
   docs/
     architecture/
+    engineering/
     features/
     integrations/
     operations/
@@ -179,6 +180,7 @@ Frontend по умолчанию обращается к `http://localhost:8080`
 
 - `AGENTS.md` - repo-level instruction entrypoint; для любых запросов на создание или изменение автотестов сначала читать этот файл и затем `docs/testing/test-authoring-rules.md`.
 - [docs/architecture/system-overview.md](docs/architecture/system-overview.md) - архитектура системы, границы модулей и ключевые технические решения.
+- [docs/engineering/code-review-principles.md](docs/engineering/code-review-principles.md) - review-oriented guide по SOLID и инженерным принципам на примерах текущего кода.
 - [docs/features/functional-overview.md](docs/features/functional-overview.md) - реализованные пользовательские и административные возможности, а также backend-only API capabilities.
 - [docs/integrations/cache.md](docs/integrations/cache.md) - выбранная cache strategy, схема ключей, invalidation model и текущие trade-offs.
 - [docs/integrations/wiremock.md](docs/integrations/wiremock.md) - архитектура WireMock-backed HTTP integration testing для `MOCK_ONLINE` payment provider.
